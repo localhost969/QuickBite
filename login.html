@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication System</title>
+    <style>
+        :root {
+            --primary-color: #4F46E5;
+            --primary-hover: #4338CA;
+            --background: #F3F4F6;
+            --card-bg: #FFFFFF;
+            --text-primary: #1F2937;
+            --text-secondary: #6B7280;
+            --error: #EF4444;
+            --success: #10B981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 32px;
+        }
+
+        h1 {
+            color: var(--text-primary);
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 24px;
+            font-weight: 600;
+        }
+
+        .tabs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 32px;
+            background: var(--background);
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .tab {
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .form {
+            display: none;
+        }
+
+        .form.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form h2 {
+            color: var(--text-primary);
+            font-size: 20px;
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary-color);
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+        }
+
+        button:disabled {
+            background: var(--text-secondary);
+            cursor: not-allowed;
+        }
+
+        .response {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .response:empty {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>QuickByte Auth</h1>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showForm('login')">Login</div>
+            <div class="tab" onclick="showForm('signup')">Signup</div>
+            <div class="tab" onclick="showForm('forgot')">Forgot</div>
+            <div class="tab" onclick="showForm('reset')">Reset</div>
+        </div>
+
+        <div id="login" class="form active">
+            <h2>Welcome back</h2>
+            <input type="email" id="login-email" placeholder="Email address">
+            <input type="password" id="login-password" placeholder="Password">
+            <button id="login-btn" onclick="login()">Sign in to account</button>
+        </div>
+
+        <div id="signup" class="form">
+            <h2>Create account</h2>
+            <input type="text" id="signup-name" placeholder="Full name">
+            <input type="email" id="signup-email" placeholder="Email address">
+            <input type="password" id="signup-password" placeholder="Create password">
+            <button id="signup-btn" onclick="signup()">Create account</button>
+        </div>
+
+        <div id="forgot" class="form">
+            <h2>Recover password</h2>
+            <input type="email" id="forgot-email" placeholder="Enter your email address">
+            <button id="forgot-btn" onclick="forgotPassword()">Send recovery token</button>
+        </div>
+
+        <div id="reset" class="form">
+            <h2>Set new password</h2>
+            <input type="email" id="reset-email" placeholder="Confirm your email">
+            <input type="text" id="reset-token" placeholder="Enter reset token">
+            <input type="password" id="new-password" placeholder="Enter new password">
+            <button id="reset-btn" onclick="resetPassword()">Update password</button>
+        </div>
+
+        <div class="response" id="response-box"></div>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost969.pythonanywhere.com/";  // Change if your API is hosted elsewhere
+
+        function showForm(id) {
+            document.querySelectorAll('.form').forEach(form => form.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelector(`.tab[onclick="showForm('${id}')"]`).classList.add('active');
+        }
+
+        function showResponse(message, isError = false) {
+            const responseBox = document.getElementById("response-box");
+            responseBox.innerHTML = message;
+            responseBox.style.color = isError ? "red" : "green";
+        }
+
+        function toggleLoading(buttonId, state) {
+            const button = document.getElementById(buttonId);
+            button.disabled = state;
+            button.innerText = state ? "Processing..." : button.getAttribute("data-original-text") || button.innerText;
+        }
+
+        async function signup() {
+            const name = document.getElementById("signup-name").value;
+            const email = document.getElementById("signup-email").value;
+            const password = document.getElementById("signup-password").value;
+
+            toggleLoading("signup-btn", true);
+            try {
+                const response = await fetch(`${API_URL}/signup`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await response.json();
+                showResponse(data.message || data.error, !response.ok);
+            } catch (error) {
+                showResponse("Signup failed", true);
+            }
+            toggleLoading("signup-btn", false);
+        }
+
+        async function login() {
+            const email = document.getElementById("login-email").value;
+            const password = document.getElementById("login-password").value;
+
+            toggleLoading("login-btn", true);
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    localStorage.setItem("token", data.token);
+                    localStorage.setItem("userEmail", email);
+                    window.location.href = 'https://localhost969.github.io/QuickBite/user.html';
+                } else {
+                    showResponse(data.error || "Login failed", true);
+                }
+            } catch (error) {
+                showResponse("Login failed", true);
+            }
+            toggleLoading("login-btn", false);
+        }
+
+        async function forgotPassword() {
+            const email = document.getElementById("forgot-email").value;
+
+            toggleLoading("forgot-btn", true);
+            try {
+                const response = await fetch(`${API_URL}/forgot-password`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email })
+                });
+                const data = await response.json();
+                showResponse(data.message || data.error, !response.ok);
+            } catch (error) {
+                showResponse("Failed to send reset token", true);
+            }
+            toggleLoading("forgot-btn", false);
+        }
+
+        async function resetPassword() {
+            const email = document.getElementById("reset-email").value;
+            const token = document.getElementById("reset-token").value;
+            const newPassword = document.getElementById("new-password").value;
+
+            toggleLoading("reset-btn", true);
+            try {
+                const response = await fetch(`${API_URL}/reset-password`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, reset_token: token, new_password: newPassword })
+                });
+                const data = await response.json();
+                showResponse(data.message || data.error, !response.ok);
+            } catch (error) {
+                showResponse("Reset password failed", true);
+            }
+            toggleLoading("reset-btn", false);
+        }
+    </script>
+
+</body>
+</html>

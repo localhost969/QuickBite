@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickByte - Coupon Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --secondary: #06b6d4;
+            --success: #22c55e;
+            --background: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 2rem;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .form-section {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .history-section {
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        h1 {
+            color: var(--text);
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 60%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .coupon-card {
+            background: white;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.75rem;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .coupon-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+        }
+
+        .coupon-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .status-badge.active {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+        }
+
+        .status-badge.used {
+            background: rgba(100, 116, 139, 0.1);
+            color: var(--text-light);
+        }
+
+        .loading {
+            position: relative;
+            pointer-events: none;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            background: white;
+            box-shadow: var(--shadow);
+            animation: slideUp 0.3s ease-out;
+            z-index: 1000;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .coupon-image {
+            background: linear-gradient(135deg, #614385 0%, #516395 100%);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border: 2px solid rgba(255,255,255,0.1);
+            transform-style: preserve-3d;
+            transform: perspective(1000px) rotateX(10deg);
+        }
+
+        .coupon-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 0% 0%, rgba(255,255,255,0.1) 0%, transparent 30%),
+                radial-gradient(circle at 100% 100%, rgba(255,255,255,0.15) 0%, transparent 30%),
+                linear-gradient(45deg, 
+                    rgba(255,255,255,0) 0%, 
+                    rgba(255,255,255,0.1) 50%, 
+                    rgba(255,255,255,0) 100%);
+            background-size: 200% 200%, 200% 200%, 200% 200%;
+            animation: shine 3s linear infinite;
+        }
+
+        @keyframes shine {
+            0% {
+                background-position: -200% -200%, 200% 200%, -200% 0%;
+            }
+            100% {
+                background-position: 200% 200%, -200% -200%, 200% 200%;
+            }
+        }
+
+        .download-emoji {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s;
+            background: none;
+            border: none;
+            padding: 0.25rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+
+        .download-emoji:hover {
+            transform: translateY(-2px) scale(1.1);
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+
+        .coupon-brand {
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 1rem;
+        }
+
+        .coupon-amount {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #fff, #e2e2e2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 1rem 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .coupon-code {
+            font-family: 'Courier New', monospace;
+            background: rgba(255,255,255,0.15);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s;
+        }
+
+        .coupon-code:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-light);
+        }
+
+        .coupon-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .copy-btn, .download-btn {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .copy-btn {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .copy-btn:hover, .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .copied {
+            animation: flash 1s;
+        }
+
+        @keyframes flash {
+            0%, 100% { background: var(--secondary); }
+            50% { background: var(--success); }
+        }
+
+        .coupon-details {
+            font-size: 0.9rem;
+            margin: 0.5rem 0;
+        }
+
+        .used-details {
+            background: rgba(100, 116, 139, 0.1);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .used-details div {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.25rem 0;
+            border-bottom: 1px dashed rgba(100, 116, 139, 0.2);
+        }
+
+        .used-details div:last-child {
+            border-bottom: none;
+        }
+
+        .used-details .label {
+            color: var(--text-light);
+        }
+
+        .used-details .value {
+            font-weight: 500;
+        }
+
+       
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-section glass-card">
+            <h1>Generate Coupon</h1>
+            <form id="couponForm">
+                <div class="form-group">
+                    <label for="amount">
+                        <i class="fas fa-rupee-sign"></i> Amount
+                    </label>
+                    <input type="number" id="amount" required min="10" max="1000" step="10" placeholder="Enter amount">
+                </div>
+                
+                <div class="form-group">
+                    <label for="expiry">
+                        <i class="fas fa-calendar"></i> Expiry Days
+                    </label>
+                    <input type="number" id="expiry" required min="1" max="30" value="7" placeholder="Days until expiry">
+                </div>
+
+                <div class="form-group">
+                    <label for="quantity">
+                        <i class="fas fa-tags"></i> Quantity
+                    </label>
+                    <input type="number" id="quantity" required min="1" max="50" value="1" placeholder="Number of coupons">
+                </div>
+
+                <button type="submit" id="generateBtn">
+                    <i class="fas fa-magic"></i> Generate Coupons
+                </button>
+            </form>
+        </div>
+
+        <div class="history-section glass-card">
+            <h1>Coupon History</h1>
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('active')">Active Coupons</div>
+                <div class="tab" onclick="switchTab('used')">Used Coupons</div>
+            </div>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost969.pythonanywhere.com/';
+
+        function generateCouponCode() {
+            const timestamp = Date.now().toString(36);
+            const randomStr = Math.random().toString(36).substring(2, 8);
+            return (timestamp + randomStr).toUpperCase().substring(0, 8);
+        }
+
+        async function createCouponImage(couponData) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1200;
+            canvas.height = 600;
+            const ctx = canvas.getContext('2d');
+
+            // Gradient background
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#2b5876');
+            gradient.addColorStop(1, '#4e4376');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Add pattern overlay
+            ctx.save();
+            ctx.globalAlpha = 0.1;
+            for(let i = 0; i < canvas.width; i += 20) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i + canvas.height, canvas.height);
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 10;
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            // Logo
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 72px Poppins';
+            ctx.textAlign = 'center';
+            ctx.fillText('QuickByte', canvas.width/2, 120);
+
+            // Decorative lines
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 - 200, 150);
+            ctx.lineTo(canvas.width/2 + 200, 150);
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Amount with currency symbol
+            ctx.font = 'bold 120px Poppins';
+            ctx.fillText(`₹${couponData.amount}`, canvas.width/2, 300);
+
+            // Coupon Code
+            ctx.font = '48px "Courier New"';
+            const codeText = couponData.code.match(/.{1,4}/g).join(' ');
+            ctx.fillText(codeText, canvas.width/2, 400);
+
+            // Expiry date
+            ctx.font = '36px Poppins';
+            ctx.fillText(`Valid until: ${couponData.expiry}`, canvas.width/2, 480);
+
+            // Add QR code or barcode here if needed
+
+            return canvas.toDataURL('image/png');
+        }
+
+        async function loadCouponHistory() {
+            try {
+                const response = await fetch(`${API_URL}/coupons/history`);
+                const data = await response.json();
+                if (data.success) {
+                    const activeCoupons = data.coupons.filter(c => !c.is_used);
+                    const usedCoupons = data.coupons.filter(c => c.is_used);
+                    
+                    window.couponData = { active: activeCoupons, used: usedCoupons };
+                    switchTab('active'); // Show active coupons by default
+                }
+            } catch (error) {
+                showToast('Failed to load coupon history', 'error');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                ${message}
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function setLoading(isLoading) {
+            const button = document.getElementById('generateBtn');
+            if (isLoading) {
+                button.classList.add('loading');
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            } else {
+                button.classList.remove('loading');
+                button.innerHTML = '<i class="fas fa-magic"></i> Generate Coupons';
+            }
+        }
+
+        document.getElementById('couponForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            setLoading(true);
+            
+            try {
+                const amount = parseInt(document.getElementById('amount').value);
+                const expiry = parseInt(document.getElementById('expiry').value);
+                const quantity = parseInt(document.getElementById('quantity').value);
+
+                const couponsContainer = document.getElementById('generatedCoupons');
+                couponsContainer.innerHTML = '<h2 style="margin-top: 2rem">Generated Coupons:</h2>';
+
+                for(let i = 0; i < quantity; i++) {
+                    const expiryDate = new Date();
+                    expiryDate.setDate(expiryDate.getDate() + expiry);
+                    
+                    const couponData = {
+                        code: generateCouponCode(),
+                        amount: amount,
+                        // Format date as MM/DD/YYYY
+                        expiry: expiryDate.toLocaleDateString('en-US', {
+                            month: '2-digit',
+                            day: '2-digit',
+                            year: 'numeric'
+                        })
+                    };
+
+                    const response = await fetch(`${API_URL}/coupons`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(couponData)
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(result.message || 'Failed to save coupon');
+                    }
+
+                    // Generate coupon image and display card
+                    const imageUrl = await createCouponImage(couponData);
+                    const couponCard = document.createElement('div');
+                    couponCard.className = 'coupon-card';
+                    couponCard.innerHTML = `
+                        <span class="status-badge active">Active</span>
+                        <div>
+                            <strong>Code:</strong> ${couponData.code}<br>
+                            <strong>Amount:</strong> ₹${couponData.amount}<br>
+                            <strong>Expires:</strong> ${couponData.expiry}
+                        </div>
+                        <a href="${imageUrl}" download="coupon-${couponData.code}.png" class="download-btn">
+                            <i class="fas fa-download"></i> Download Image
+                        </a>
+                    `;
+                    couponsContainer.appendChild(couponCard);
+                }
+
+                showToast(`Successfully generated ${quantity} coupon${quantity > 1 ? 's' : ''}!`);
+                await loadCouponHistory(); // Refresh history after generating
+            } catch (error) {
+                showToast(error.message || 'Failed to generate coupon', 'error');
+                console.error('Error:', error);
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => 
+                t.classList.toggle('active', t.textContent.toLowerCase().includes(tab))
+            );
+
+            const coupons = window.couponData?.[tab] || [];
+            const historyList = document.getElementById('historyList');
+            
+            if (coupons.length === 0) {
+                historyList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-ticket fa-3x"></i>
+                        <p>No ${tab} coupons found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            historyList.innerHTML = coupons.map(coupon => `
+                <div class="coupon-card">
+                    ${tab === 'active' ? `
+                        <button class="download-emoji" onclick="downloadCoupon(${JSON.stringify(coupon).replace(/"/g, '&quot;')})">
+                            
+                        </button>
+                    ` : '<span class="used-badge"></span>'}
+                    <div class="coupon-image">
+                        <div class="coupon-brand">QuickByte Coupon</div>
+                        <div class="coupon-amount">₹${coupon.amount}</div>
+                        <div class="coupon-code" onclick="copyToClipboard('${coupon.code}', this)" title="Click to copy">${coupon.code}</div>
+                        <div class="coupon-validity">Valid until ${coupon.expiry}</div>
+                    </div>
+                    ${tab === 'used' ? `
+                        <div class="used-details">
+                            <div>
+                                <span class="label">Redeemed By:</span>
+                                <span class="value">${coupon.used_by || 'Unknown'}</span>
+                            </div>
+                            <div>
+                                <span class="label">Redeemed On:</span>
+                                <span class="value">${new Date(coupon.used_at).toLocaleString()}</span>
+                            </div>
+                           
+                            <div>
+                                <span class="label">Status:</span>
+                                <span class="value">Redeemed ✓</span>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function copyToClipboard(text, element) {
+            try {
+                await navigator.clipboard.writeText(text);
+                
+                // Visual feedback
+                element.style.background = 'rgba(34, 197, 94, 0.3)';
+                showToast('Copied!', 'success');
+                
+                // Reset background after animation
+                setTimeout(() => {
+                    element.style.background = 'rgba(255,255,255,0.2)';
+                }, 1000);
+            } catch (err) {
+                showToast('Failed to copy', 'error');
+            }
+        }
+
+        async function downloadCoupon(couponData) {
+            try {
+                const imageUrl = await createCouponImage(couponData);
+                const link = document.createElement('a');
+                link.href = imageUrl;
+                link.download = `quickbyte-coupon-${couponData.code}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showToast('Downloaded!', 'success');
+            } catch (error) {
+                showToast('Download failed', 'error');
+                console.error('Download error:', error);
+            }
+        }
+
+        // Initialize page
+        loadCouponHistory();
+    </script>
+</body>
+</html>
