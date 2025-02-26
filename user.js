@@ -1,5 +1,5 @@
 // Update API URL configuration
-       const API_URL = 'http://localhost969.pythonanywhere.com/';
+       const API_URL = 'https://quickbite.89determined.workers.dev/';
        let cart = [];
        let walletBalance = 50.00;
 
