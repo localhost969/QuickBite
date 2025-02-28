@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "ignoreErrors": true,
+    "noEmit": true,
+    "strict": false,
+    "skipLibCheck": true
+  }
+}
