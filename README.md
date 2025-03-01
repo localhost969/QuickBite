@@ -9,6 +9,28 @@ This project combines a Flask backend API with a Next.js frontend to create a co
 ## Live Demo
 
 Check out the live version here: [QuickBite Live](http://qb-two.vercel.app/login)
+![image](https://github.com/user-attachments/assets/49d4e260-805e-4305-8b6e-2da90fa89358)
+
+![image](https://github.com/user-attachments/assets/7f48eb13-befb-43dd-bc29-c32d973190fa)
+
+![image](https://github.com/user-attachments/assets/990dd00a-e958-450f-966e-10e6cde988f5)
+
+
+![image](https://github.com/user-attachments/assets/bb809c69-a410-40e2-95af-1bab956ed849)
+
+![image](https://github.com/user-attachments/assets/fb0331a2-1f65-415c-b2d2-85273044a93a)
+
+
+![image](https://github.com/user-attachments/assets/9f87ecf1-3019-4a14-82fc-30e3705c9863)
+
+![image](https://github.com/user-attachments/assets/91b33ea1-b5a9-4a8d-9bbf-a5b13185f522)
+
+![image](https://github.com/user-attachments/assets/f8c4fa94-edb4-474b-a85b-eaaa0ee86a8f)
+
+
+
+
+
 
 
 ## Technologies Used
