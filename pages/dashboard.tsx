@@ -29,6 +29,7 @@ export default function Dashboard() {
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -42,7 +43,7 @@ export default function Dashboard() {
     const fetchUserData = async () => {
       try {
         // Fetch user details
-        const userResponse = await fetch('http://127.0.0.1:5000/user', {
+        const userResponse = await fetch('https://localhost969.pythonanywhere.com/user', {
           headers: {
             Authorization: token,
           },
@@ -73,6 +74,44 @@ export default function Dashboard() {
 
     fetchUserData();
   }, [router]);
+
+  // Verify authentication on client-side
+  useEffect(() => {
+    // Check for authentication
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      // Not authenticated, redirect to login
+      window.location.href = '/auth';
+      return;
+    }
+    
+    // Simple validation of token format
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        throw new Error('Invalid token format');
+      }
+      
+      // Continue normal loading
+      setLoading(false);
+    } catch (error) {
+      // Invalid token, clear and redirect
+      localStorage.removeItem('token');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('userEmail');
+      
+      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+      document.cookie = 'userRole=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+      
+      window.location.href = '/auth';
+    }
+  }, [router]);
+  
+  if (loading) {
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+  }
 
   // Format date
   const formatDate = (dateString: string) => {
@@ -235,4 +274,47 @@ export default function Dashboard() {
       </div>
     </Layout>
   );
+}
+
+export async function getServerSideProps(context) {
+  const { req, res } = context;
+  const cookies = req.cookies || {};
+  
+  // Check authentication
+  if (!cookies.token) {
+    return {
+      redirect: {
+        destination: '/auth',
+        permanent: false,
+      },
+    };
+  }
+  
+  // Get current pathname
+  const currentPath = req.url;
+  
+  // Check role access - redirect if wrong dashboard for role
+  const userRole = cookies.userRole || 'user';
+  
+  if (currentPath.startsWith('/admin') && userRole !== 'admin') {
+    return {
+      redirect: {
+        destination: '/dashboard',
+        permanent: false,
+      },
+    };
+  }
+  
+  if (currentPath.startsWith('/canteen') && userRole !== 'canteen') {
+    return {
+      redirect: {
+        destination: '/dashboard',
+        permanent: false,
+      },
+    };
+  }
+  
+  return {
+    props: {}
+  };
 }
