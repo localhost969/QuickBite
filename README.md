@@ -9,6 +9,22 @@ This project combines a Flask backend API with a Next.js frontend to create a co
 ## Live Demo
 
 Check out the live version here: [QuickBite Live](http://qb-two.vercel.app/login)
+
+Use
+*For canteen:*
+test@test.com
+12345678
+
+
+*For admin:*
+admin@qb.com
+admin@123
+
+
+*For user:*
+Sign up using email ID
+
+
 ![image](https://github.com/user-attachments/assets/49d4e260-805e-4305-8b6e-2da90fa89358)
 
 ![image](https://github.com/user-attachments/assets/7f48eb13-befb-43dd-bc29-c32d973190fa)
