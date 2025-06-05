@@ -8,7 +8,7 @@ This project combines a Flask backend API with a Next.js frontend to create a co
 
 ## Live Demo
 
-Check out the live version here: [QuickBite Live](http://qb-two.vercel.app/login)
+Check out the live version here: [QuickBite Live](https://quick-bite-lake.vercel.app/login)
 
 Use
 *For canteen:*
@@ -22,26 +22,30 @@ admin@123
 
 
 *For user:*
-Sign up using email ID
+vardan@qb.com
+12345678
 
 
-![image](https://github.com/user-attachments/assets/49d4e260-805e-4305-8b6e-2da90fa89358)
-
-![image](https://github.com/user-attachments/assets/7f48eb13-befb-43dd-bc29-c32d973190fa)
-
-![image](https://github.com/user-attachments/assets/990dd00a-e958-450f-966e-10e6cde988f5)
+![image](https://github.com/user-attachments/assets/8644eb6c-c45c-4724-83e6-0d1a0338c434)
 
 
-![image](https://github.com/user-attachments/assets/bb809c69-a410-40e2-95af-1bab956ed849)
+![image](https://github.com/user-attachments/assets/ef0cecf1-4679-47d6-824e-88fd33bc1f6c)
+
+![image](https://github.com/user-attachments/assets/8779658e-49e6-47d8-971e-ffabf9ee6e28)
+
+
+![image](https://github.com/user-attachments/assets/8db30eb9-15cb-4d21-bb64-edc2651d439f)
+
 
 ![image](https://github.com/user-attachments/assets/fb0331a2-1f65-415c-b2d2-85273044a93a)
 
 
-![image](https://github.com/user-attachments/assets/9f87ecf1-3019-4a14-82fc-30e3705c9863)
+![image](https://github.com/user-attachments/assets/8565a632-5984-46b5-88c2-776a5e196617)
 
-![image](https://github.com/user-attachments/assets/91b33ea1-b5a9-4a8d-9bbf-a5b13185f522)
+![image](https://github.com/user-attachments/assets/657448ad-3491-49c6-abb8-bf1b149f540b)
 
-![image](https://github.com/user-attachments/assets/f8c4fa94-edb4-474b-a85b-eaaa0ee86a8f)
+![image](https://github.com/user-attachments/assets/54cc953f-f524-4982-bf7f-be5f63f9ec50)
+
 
 
 
