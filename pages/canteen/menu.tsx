@@ -304,7 +304,7 @@ export default function CanteenMenu() {
                   <FaSpinner className="animate-spin text-3xl text-green-500" />
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   <AnimatePresence>
                     {filteredProducts.map((product) => (
                       <motion.div
@@ -313,40 +313,40 @@ export default function CanteenMenu() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100"
+                        className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-shadow"
                       >
-                        <div className="aspect-w-16 aspect-h-9 relative bg-gray-100">
+                        <div className="relative bg-gray-50 h-40">
                           <img
                             src={product.image_url || '/placeholder.png'}
                             alt={product.name}
-                            className="object-cover w-full h-full"
+                            className="object-contain w-full h-full p-2"
                           />
                         </div>
-                        <div className="p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h3 className="font-semibold text-gray-900">{product.name}</h3>
-                              <p className="text-green-600 font-medium">₹{product.price}</p>
-                              <span className="text-sm text-gray-500 capitalize">{product.category}</span>
+                        <div className="p-3">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-gray-900 text-sm truncate">{product.name}</h3>
+                              <p className="text-green-600 font-medium text-sm">₹{product.price}</p>
                             </div>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            <span className={`ml-2 px-1.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
                               product.availability === 'available' 
                                 ? 'bg-green-100 text-green-800'
                                 : 'bg-red-100 text-red-800'
                             }`}>
-                              {product.availability}
+                              {product.availability === 'available' ? 'Available' : 'Out of Stock'}
                             </span>
                           </div>
-                          <div className="flex gap-2 mt-4">
+                          <span className="text-xs text-gray-500 capitalize block mb-2">{product.category}</span>
+                          <div className="flex gap-1.5">
                             <button
                               onClick={() => handleEditClick(product)}
-                              className="flex-1 px-3 py-2 text-sm font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                              className="flex-1 px-2 py-1.5 text-xs font-medium rounded border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
                             >
                               Edit
                             </button>
                             <button
                               onClick={() => handleDelete(product.id)}
-                              className="flex-1 px-3 py-2 text-sm font-medium rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                              className="flex-1 px-2 py-1.5 text-xs font-medium rounded border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
                             >
                               Delete
                             </button>

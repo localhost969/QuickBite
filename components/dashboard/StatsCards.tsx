@@ -9,36 +9,35 @@ interface StatsCardsProps {
 export default function StatsCards({ totalSaved }: StatsCardsProps) {
   const cards = [
     {
-      title: "Saved",
+      title: "Total Saved",
       value: `₹${totalSaved.toFixed(0)}`,
       icon: FaMoneyBillWave,
-      color: "bg-gradient-to-r from-green-400 to-emerald-500",
+      subtitle: "Through discounts & offers",
       link: null
     },
     {
-      title: "Offers",
-      value: "View",
+      title: "Special Offers",
+      value: "View Deals",
       icon: FaGift,
-      color: "bg-gradient-to-r from-purple-400 to-indigo-500",
-      link: "/offers"
+      subtitle: "Limited time offers",
+      link: null
     },
     {
-      title: "Help",
-      value: "Support",
+      title: "Need Help?",
+      value: "24/7 Support",
       icon: FaHeadset,
-      color: "bg-gradient-to-r from-blue-400 to-blue-600",
-      link: "/support"
+      subtitle: "We're here to assist",
+      link: null
     }
   ];
 
   return (
-    <div className="px-4 max-w-7xl mx-auto">
-      {/* Responsive Grid Layout */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+    <div className="max-w-7xl mx-auto px-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {cards.map((card, index) => (
           <motion.div
             key={card.title}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
             className="w-full"
@@ -57,20 +56,42 @@ export default function StatsCards({ totalSaved }: StatsCardsProps) {
   );
 }
 
-function StatCard({ title, value, icon: Icon, color }) {
+interface StatCardProps {
+  title: string;
+  value: string;
+  icon: React.ComponentType<any>;
+  subtitle: string;
+  link?: string | null;
+}
+
+function StatCard({ title, value, icon: Icon, subtitle, link }: StatCardProps) {
   return (
-    <div className="group cursor-pointer h-full">
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden h-full flex items-center">
-        <div className={`${color} w-1 sm:w-2 h-full group-hover:w-2 sm:group-hover:w-3 transition-all duration-200`} />
-        <div className="flex flex-col sm:flex-row items-center sm:items-center gap-1 sm:gap-3 p-2 sm:p-4 w-full">
-          <div className={`${color} rounded-full w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center text-white shadow-sm`}>
-            <Icon className="w-3 h-3 sm:w-4 sm:h-4" />
+    <div className={`group ${link ? 'cursor-pointer' : ''} h-full`}>
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden h-full 
+                    hover:shadow-md hover:border-primary-200 transition-all duration-300">
+        {/* Header with icon */}
+        <div className="p-6 pb-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-primary-50 rounded-xl group-hover:bg-primary-100 transition-colors duration-300">
+              <Icon className="w-6 h-6 text-primary-600" />
+            </div>
+            {link && (
+              <div className="w-2 h-2 bg-primary-200 rounded-full group-hover:bg-primary-400 transition-colors duration-300" />
+            )}
           </div>
-          <div className="text-center sm:text-left">
-            <p className="text-xs text-gray-500 font-medium">{title}</p>
-            <p className="text-sm sm:text-base font-bold">{value}</p>
+          
+          <div className="space-y-1">
+            <h3 className="text-sm font-medium text-gray-500">{title}</h3>
+            <p className="text-xl font-bold text-gray-900 group-hover:text-primary-700 transition-colors duration-300">
+              {value}
+            </p>
+            <p className="text-xs text-gray-400">{subtitle}</p>
           </div>
         </div>
+        
+        {/* Bottom accent */}
+        <div className="h-1 bg-gradient-to-r from-primary-500 to-primary-600 transform scale-x-0 
+                      group-hover:scale-x-100 transition-transform duration-300 origin-left" />
       </div>
     </div>
   );

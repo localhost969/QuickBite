@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import AdminLayout from '../../components/layout/AdminLayout';
 import { 
   FaUsers, FaStore, FaChartBar, FaMoneyBillWave, 
@@ -11,8 +12,36 @@ import dynamic from 'next/dynamic';
 
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
+interface AnalyticsData {
+  date: string;
+  value: number;
+}
+
+interface StatsData {
+  totalUsers: number;
+  totalCanteens: number;
+  totalOrders: number;
+  totalRevenue: number;
+  cancelledOrders: number;
+  totalRefunded: number;
+  analytics: {
+    daily: AnalyticsData[];
+    weekly: AnalyticsData[];
+    monthly: AnalyticsData[];
+  };
+}
+
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  icon: React.ComponentType<any>;
+  color: string;
+  trend?: number;
+}
+
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
+  const router = useRouter();
+  const [stats, setStats] = useState<StatsData>({
     totalUsers: 0,
     totalCanteens: 0,
     totalOrders: 0,
@@ -26,7 +55,6 @@ export default function AdminDashboard() {
     }
   });
 
-  const [showAnalytics, setShowAnalytics] = useState(false);
   const [analyticsType, setAnalyticsType] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -46,7 +74,7 @@ export default function AdminDashboard() {
 
       const authHeader = `Bearer ${token}`;
       
-      const response = await fetch('http://localhost:5000/admin/dashboard', {
+      const response = await fetch('https://localhost969.pythonanywhere.com/admin/dashboard', {
         headers: {
           'Authorization': authHeader,
           'Content-Type': 'application/json'
@@ -75,16 +103,16 @@ export default function AdminDashboard() {
   const getTrendPercentage = () => {
     if (!stats.analytics?.daily || stats.analytics.daily.length < 2) return 0;
     const lastTwo = stats.analytics.daily.slice(-2);
-    const prevValue = lastTwo[0].value || 0;
-    const currentValue = lastTwo[1].value || 0;
+    const prevValue = lastTwo[0]?.value || 0;
+    const currentValue = lastTwo[1]?.value || 0;
     if (prevValue === 0) return 100;
     return ((currentValue - prevValue) / prevValue) * 100;
   };
 
-  const StatCard = ({ title, value, icon: Icon, color, trend = 0 }) => (
+  const StatCard = ({ title, value, icon: Icon, color, trend = 0 }: StatCardProps) => (
     <motion.div 
-      className="bg-gradient-to-br from-white to-gray-50 rounded-xl overflow-hidden"
-      whileHover={{ y: -5 }}
+      className="bg-gradient-to-br from-white to-gray-50 rounded-xl overflow-hidden shadow-sm border border-gray-100"
+      whileHover={{ y: -2, shadow: "0 10px 30px rgba(0,0,0,0.1)" }}
       transition={{ type: "spring", stiffness: 300 }}
     >
       <div className="relative">
@@ -99,21 +127,21 @@ export default function AdminDashboard() {
               <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${color.replace('bg-', 'text-')}`} />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-gray-500 mb-0.5">{title}</p>
+              <p className="text-sm font-medium text-gray-600 mb-0.5">{title}</p>
               <div className="flex items-center gap-2">
-                <p className="text-lg sm:text-2xl font-bold truncate">
-                  {typeof value === 'string' && value.startsWith('₹') ? (
+                <p className="text-lg sm:text-2xl font-bold truncate text-gray-900">
+                  {typeof value === 'string' && value.toString().startsWith('₹') ? (
                     <span className="flex items-baseline gap-1">
                       <span className="text-base">₹</span>
-                      <span>{value.slice(1)}</span>
+                      <span>{value.toString().slice(1)}</span>
                     </span>
                   ) : value}
                 </p>
                 {trend !== 0 && (
                   <span className={`flex items-center text-xs sm:text-sm flex-shrink-0 ${
-                    trend > 0 ? 'text-green-500' : 'text-red-500'
+                    trend > 0 ? 'text-emerald-500' : 'text-red-500'
                   }`}>
-                    {trend > 0 ? <FaArrowUp /> : <FaArrowDown />}
+                    {trend > 0 ? <FaArrowUp className="w-3 h-3" /> : <FaArrowDown className="w-3 h-3" />}
                     {Math.abs(trend).toFixed(1)}%
                   </span>
                 )}
@@ -127,7 +155,7 @@ export default function AdminDashboard() {
 
   const chartOptions = {
     chart: {
-      type: 'area',
+      type: 'area' as const,
       toolbar: {
         show: false
       },
@@ -146,7 +174,7 @@ export default function AdminDashboard() {
       }
     },
     stroke: {
-      curve: 'smooth',
+      curve: 'smooth' as const,
       width: 3
     },
     fill: {
@@ -172,7 +200,7 @@ export default function AdminDashboard() {
     },
     colors: ['#10B981'],
     xaxis: {
-      categories: stats.analytics?.daily?.map(d => d.date) || [],
+      categories: stats.analytics?.[analyticsType]?.map(d => d.date) || [],
       labels: {
         style: {
           colors: '#64748b',
@@ -182,7 +210,7 @@ export default function AdminDashboard() {
     },
     yaxis: {
       labels: {
-        formatter: (value) => `₹${value.toFixed(0)}`,
+        formatter: (value: number) => `₹${value.toFixed(0)}`,
         style: {
           colors: '#64748b',
           fontFamily: 'Inter, sans-serif'
@@ -192,21 +220,20 @@ export default function AdminDashboard() {
     tooltip: {
       theme: 'dark',
       y: {
-        formatter: (value) => `₹${value.toFixed(2)}`
+        formatter: (value: number) => `₹${value.toFixed(2)}`
       }
     }
   };
 
   return (
     <RoleBasedGuard allowedRoles={['admin']}>
-      <AdminLayout>
-        <div className="p-4 sm:p-6 bg-gray-50/50 min-h-screen">
-          {/* Mobile-optimized Header */}
+      <AdminLayout title="Dashboard">
+        <div className="p-4 sm:p-6 bg-gradient-to-br from-gray-50/50 to-white min-h-screen">
+          {/* Quick Actions Header */}
           <div className="mb-6 sm:mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Dashboard Overview</h1>
-                <p className="text-sm sm:text-base text-gray-500 mt-1">Welcome back, Admin</p>
+                <p className="text-gray-600">Welcome back, Admin!.</p>
               </div>
               <button
                 onClick={() => fetchDashboardData()}
@@ -221,10 +248,10 @@ export default function AdminDashboard() {
           </div>
 
           {/* Responsive Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
             <StatCard
               title="Total Revenue"
-              value={`₹${parseInt(stats.totalRevenue).toLocaleString()}`}
+              value={`₹${Math.round(stats.totalRevenue).toLocaleString()}`}
               icon={FaMoneyBillWave}
               color="bg-emerald-500"
               trend={getTrendPercentage()}
@@ -261,19 +288,19 @@ export default function AdminDashboard() {
             />
           </div>
 
-          {/* Responsive Analytics Section */}
+          {/* Analytics Section */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            {/* Main Chart - Full width on mobile */}
-            <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 overflow-hidden">
+            {/* Main Chart */}
+            <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                   <h2 className="text-lg font-semibold text-gray-800">Revenue Analytics</h2>
-                  {/* Mobile-friendly Period Selector */}
+                  {/* Period Selector */}
                   <div className="flex rounded-xl bg-gray-50 p-1">
-                    {['daily', 'weekly', 'monthly'].map((type) => (
+                    {(['daily', 'weekly', 'monthly'] as const).map((type) => (
                       <button
                         key={type}
-                        onClick={() => setAnalyticsType(type as any)}
+                        onClick={() => setAnalyticsType(type)}
                         className={`flex-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                           analyticsType === type
                             ? 'bg-white text-primary-600 shadow-sm'
@@ -286,7 +313,7 @@ export default function AdminDashboard() {
                   </div>
                 </div>
                 
-                {/* Responsive Chart Container */}
+                {/* Chart Container */}
                 <div className="h-[300px] sm:h-[400px] -mx-4 sm:mx-0">
                   <Chart
                     options={{
@@ -300,7 +327,6 @@ export default function AdminDashboard() {
                           enabled: false
                         }
                       },
-                      // Mobile optimizations
                       grid: {
                         padding: {
                           left: 10,
@@ -308,7 +334,6 @@ export default function AdminDashboard() {
                         },
                         strokeDashArray: 4,
                       },
-                      // Responsive text
                       xaxis: {
                         ...chartOptions.xaxis,
                         labels: {
@@ -332,9 +357,9 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Quick Stats - Grid on mobile */}
+            {/* Quick Stats */}
             <div className="space-y-4">
-              <div className="bg-white rounded-xl border border-gray-100">
+              <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
                 <div className="p-4 sm:p-6">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Stats</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-1 gap-4">
@@ -364,18 +389,20 @@ export default function AdminDashboard() {
                         isPositive: true
                       }
                     ].map((stat, index) => (
-                      <div
+                      <motion.div
                         key={index}
-                        className="bg-gray-50 rounded-xl p-3 sm:p-4 hover:bg-gray-100 transition-colors"
+                        className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 sm:p-4 hover:bg-gray-100 transition-colors border border-gray-100"
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ type: "spring", stiffness: 300 }}
                       >
                         <p className="text-sm text-gray-600 mb-1">{stat.label}</p>
                         <div className="flex items-end justify-between">
-                          <span className="text-lg sm:text-xl font-semibold">{stat.value}</span>
-                          <span className={`text-xs ${stat.isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                          <span className="text-lg sm:text-xl font-semibold text-gray-900">{stat.value}</span>
+                          <span className={`text-xs ${stat.isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
                             {stat.change}
                           </span>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 </div>

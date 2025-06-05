@@ -1,10 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { motion } from 'framer-motion';
-import { FaUtensils, FaHistory, FaWallet, FaArrowRight } from 'react-icons/fa';
 import Layout from '../components/layout/Layout';
-import { useRouter } from 'next/router';
-import Link from 'next/link';
+import FloatingCart from '../components/cart/FloatingCart';
+import { useCart } from '../hooks/useCart';
+import { useFavorites } from '../hooks/useFavorites';
+import { useLoyalty } from '../hooks/useLoyalty';
+import { toast } from 'react-toastify';
+
+// Lazy load all dashboard components
+const WelcomeHero = lazy(() => import('../components/dashboard/WelcomeHero'));
+const FavoritesSection = lazy(() => import('../components/dashboard/FavoritesSection'));
+const FoodDiscoveriesSection = lazy(() => import('../components/dashboard/FoodDiscoveriesSection'));
+const SpecialDealsSection = lazy(() => import('../components/dashboard/SpecialDealsSection'));
+const RecentOrdersSection = lazy(() => import('../components/dashboard/RecentOrdersSection'));
+const StatsCards = lazy(() => import('../components/dashboard/StatsCards'));
+
+const MotionDiv = motion.div;
 
 interface User {
   name: string;
@@ -21,15 +34,109 @@ interface Order {
     name: string;
     quantity: number;
     price: number;
+    image_url?: string;
   }>;
 }
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  image_url?: string;
+  discount?: number;
+  rating?: number;
+  badge?: string;
+  order_count?: number;
+  description?: string;
+}
+
+// Loading component for Suspense fallback
+const SectionSkeleton = ({ className = "" }: { className?: string }) => (
+  <div className={`animate-pulse bg-white rounded-xl shadow-sm border ${className}`}>
+    <div className="p-6">
+      <div className="h-6 bg-gray-200 rounded-md w-1/3 mb-4"></div>
+      <div className="space-y-3">
+        <div className="h-4 bg-gray-200 rounded w-full"></div>
+        <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+        <div className="h-4 bg-gray-200 rounded w-4/6"></div>
+      </div>
+    </div>
+  </div>
+);
+
+// Custom hook for intersection observer-based lazy loading
+const useIntersectionObserver = (threshold = 0.1) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [ref, setRef] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!ref) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold }
+    );
+
+    observer.observe(ref);
+
+    return () => observer.disconnect();
+  }, [ref, threshold]);
+
+  return [setRef, isVisible] as const;
+};
+
+// Lazy section wrapper component
+const LazySection = ({ 
+  children, 
+  fallback = <SectionSkeleton />,
+  className = ""
+}: { 
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+  className?: string;
+}) => {
+  const [ref, isVisible] = useIntersectionObserver(0.1);
+
+  return (
+    <div ref={ref} className={className}>
+      {isVisible ? (
+        <Suspense fallback={fallback}>
+          {children}
+        </Suspense>
+      ) : (
+        fallback
+      )}
+    </div>
+  );
+};
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const [trendingItems, setTrendingItems] = useState<Product[]>([]);
+  const [discountedItems, setDiscountedItems] = useState<Product[]>([]);
+  const { addItem: addToCart, totalItems } = useCart();
+  const { 
+    favorites, 
+    removeFromFavorites, 
+    isLoading: favoritesLoading, 
+    fetchFavorites,
+    toggleFavorite,
+    isFavorite
+  } = useFavorites();
+  const { loyaltyStatus } = useLoyalty();
+  const [statsData, setStatsData] = useState({
+    ordersThisWeek: 0,
+    totalSpent: 0,
+    avgOrderValue: 0,
+    orderFrequency: 0
+  });
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -42,7 +149,6 @@ export default function Dashboard() {
 
     const fetchUserData = async () => {
       try {
-        // Fetch user details
         const userResponse = await fetch('https://localhost969.pythonanywhere.com/user', {
           headers: {
             Authorization: token,
@@ -56,8 +162,7 @@ export default function Dashboard() {
         const userData = await userResponse.json();
         setUser(userData);
 
-        // Fetch recent orders
-        const ordersResponse = await fetch(`http://127.0.0.1:5000/orders/user/${userEmail}`);
+        const ordersResponse = await fetch(`https://localhost969.pythonanywhere.com/orders/user/${userEmail}`);
         
         if (!ordersResponse.ok) {
           throw new Error('Failed to fetch orders');
@@ -67,36 +172,26 @@ export default function Dashboard() {
         setRecentOrders(ordersData.orders?.slice(0, 3) || []);
       } catch (error) {
         console.error('Error fetching data:', error);
-      } finally {
-        setIsLoading(false);
       }
     };
 
     fetchUserData();
   }, [router]);
 
-  // Verify authentication on client-side
   useEffect(() => {
-    // Check for authentication
     const token = localStorage.getItem('token');
     
     if (!token) {
-      // Not authenticated, redirect to login
       window.location.href = '/auth';
       return;
     }
     
-    // Simple validation of token format
     try {
       const parts = token.split('.');
       if (parts.length !== 3) {
         throw new Error('Invalid token format');
       }
-      
-      // Continue normal loading
-      setLoading(false);
     } catch (error) {
-      // Invalid token, clear and redirect
       localStorage.removeItem('token');
       localStorage.removeItem('userRole');
       localStorage.removeItem('userName');
@@ -108,179 +203,169 @@ export default function Dashboard() {
       window.location.href = '/auth';
     }
   }, [router]);
-  
-  if (loading) {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
-  }
 
-  // Format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', { 
-      day: 'numeric', 
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
+  useEffect(() => {
+    const fetchTrendingAndDiscounted = async () => {
+      try {
+        const trendingResponse = await fetch('https://localhost969.pythonanywhere.com/products/popular');
+        const trendingData = await trendingResponse.json();
+        
+        const discountedResponse = await fetch('https://localhost969.pythonanywhere.com/products/discounted');
+        const discountedData = await discountedResponse.json();
+
+        if (trendingData.success) {
+          setTrendingItems(trendingData.products);
+        }
+        
+        if (discountedData.success) {
+          setDiscountedItems(discountedData.products);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+
+    fetchTrendingAndDiscounted();
+  }, []);
+  
+  useEffect(() => {
+    if (recentOrders.length > 0) {
+      const weekOrders = recentOrders.filter(order => {
+        const orderDate = new Date(order.created_at);
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        return orderDate >= weekAgo;
+      });
+
+      const totalSpent = recentOrders.reduce((sum, order) => sum + order.total, 0);
+      
+      setStatsData({
+        ordersThisWeek: weekOrders.length,
+        totalSpent,
+        avgOrderValue: totalSpent / recentOrders.length,
+        orderFrequency: Math.round((weekOrders.length / 7) * 100) / 100
+      });
+    }
+  }, [recentOrders]);
+
+  useEffect(() => {
+    if (fetchFavorites) {
+      fetchFavorites();
+    }
+  }, [fetchFavorites]);
+
+  const handleAddToCart = async (product: any, quantity: number = 1) => {
+    try {
+      for (let i = 0; i < quantity; i++) {
+        addToCart(product);
+      }
+      toast.success(`Added ${quantity} ${product.name} to cart`);
+      await fetchFavorites();
+      return Promise.resolve();
+    } catch (error) {
+      toast.error('Failed to add to cart');
+      return Promise.reject(error);
+    }
   };
 
-  if (isLoading) {
-    return (
-      <Layout>
-        <div className="flex justify-center items-center h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
-        </div>
-      </Layout>
-    );
-  }
+  const handleRemoveFavorite = async (productId: string) => {
+    const product = favorites.find(fav => fav.id === productId);
+    if (product) {
+      try {
+        await removeFromFavorites(product);
+        await fetchFavorites();
+      } catch (error) {
+        console.error('Error removing favorite:', error);
+        toast.error('Failed to remove from favorites');
+      }
+    }
+  };
 
   return (
     <Layout>
       <Head>
-        <title>Dashboard - QuickByte</title>
-        <meta name="description" content="QuickByte user dashboard" />
+        <title>QuickByte | Your Food Dashboard</title>
+        <meta name="description" content="Your personalized food ordering dashboard" />
       </Head>
 
-      <div className="container mx-auto px-4 py-8">
-        <motion.div
-          className="mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h1 className="text-3xl font-bold text-gray-800">
-            Welcome back, {user?.name}
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Here's an overview of your activity and quick access to common tasks.
-          </p>
-        </motion.div>
+      <div className="min-h-screen bg-gray-50/50">
+        <div className="space-y-6">
+          <LazySection>
+            <WelcomeHero 
+              userName={user?.name || ''} 
+              loyaltyPoints={loyaltyStatus?.points || 0}
+              loyaltyTier={loyaltyStatus?.tier || 'Bronze'}
+            />
+          </LazySection>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Quick Actions */}
-          <motion.div
-            className="md:col-span-2"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800">Quick Actions</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <Link href="/menu" className="bg-primary-50 hover:bg-primary-100 p-4 rounded-lg transition-colors flex flex-col items-center">
-                  <div className="h-12 w-12 rounded-full bg-primary-100 flex items-center justify-center mb-3">
-                    <FaUtensils className="text-primary-600 text-xl" />
-                  </div>
-                  <span className="text-gray-800 font-medium">Order Food</span>
-                </Link>
-                <Link href="/orders" className="bg-primary-50 hover:bg-primary-100 p-4 rounded-lg transition-colors flex flex-col items-center">
-                  <div className="h-12 w-12 rounded-full bg-primary-100 flex items-center justify-center mb-3">
-                    <FaHistory className="text-primary-600 text-xl" />
-                  </div>
-                  <span className="text-gray-800 font-medium">Order History</span>
-                </Link>
-                <Link href="/wallet" className="bg-primary-50 hover:bg-primary-100 p-4 rounded-lg transition-colors flex flex-col items-center">
-                  <div className="h-12 w-12 rounded-full bg-primary-100 flex items-center justify-center mb-3">
-                    <FaWallet className="text-primary-600 text-xl" />
-                  </div>
-                  <span className="text-gray-800 font-medium">Manage Wallet</span>
-                </Link>
-              </div>
+          <div className="container mx-auto px-4">
+            <div className="max-w-7xl mx-auto">
+              <LazySection>
+                <StatsCards totalSaved={(statsData.totalSpent * 0.1) || 0} />
+              </LazySection>
             </div>
-          </motion.div>
+          </div>
 
-          {/* Wallet Summary */}
-          <motion.div
-            className="col-span-1"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <div className="bg-white rounded-xl shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800">Wallet Balance</h2>
-              <div className="flex flex-col items-center">
-                <div className="text-3xl font-bold text-gray-800">
-                  ₹{user?.wallet_balance.toFixed(2)}
+          <div className="container mx-auto px-4">
+            <div className="max-w-7xl mx-auto space-y-6">
+              {/* God Level Dashboard Layout - Master Grid */}
+              <div className="grid grid-cols-12 gap-6">
+                {/* Row 1: Food Discoveries (8 cols) + Recent Orders (4 cols) */}
+                <div className="col-span-12 lg:col-span-8">
+                  <LazySection>
+                    <FoodDiscoveriesSection
+                      products={trendingItems}
+                      onToggleFavorite={toggleFavorite}
+                      isFavorite={isFavorite}
+                    />
+                  </LazySection>
                 </div>
-                <Link href="/wallet" className="mt-4 text-primary-600 flex items-center hover:text-primary-700 font-medium">
-                  Manage Wallet <FaArrowRight className="ml-2" />
-                </Link>
+
+                <div className="col-span-12 lg:col-span-4">
+                  <LazySection>
+                    <RecentOrdersSection
+                      orders={recentOrders}
+                      onViewOrder={() => router.push('/orders')}
+                    />
+                  </LazySection>
+                </div>
+
+                {/* Row 2: Special Deals (8 cols) + Favorites (4 cols) */}
+                <div className="col-span-12 lg:col-span-8">
+                  <LazySection>
+                    <SpecialDealsSection
+                      products={discountedItems}
+                      onToggleFavorite={toggleFavorite}
+                      isFavorite={isFavorite}
+                    />
+                  </LazySection>
+                </div>
+
+                <div className="col-span-12 lg:col-span-4">
+                  <LazySection>
+                    <FavoritesSection
+                      favorites={favorites || []}
+                      onAddToCart={handleAddToCart}
+                      onRemoveFavorite={handleRemoveFavorite}
+                      isLoading={favoritesLoading}
+                    />
+                  </LazySection>
+                </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
 
-        {/* Recent Orders */}
-        <motion.div
-          className="mt-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-800">Recent Orders</h2>
-              <Link href="/orders" className="text-primary-600 hover:text-primary-700 flex items-center">
-                View All <FaArrowRight className="ml-2" />
-              </Link>
-            </div>
-
-            {recentOrders.length > 0 ? (
-              <div className="space-y-4">
-                {recentOrders.map((order) => (
-                  <div key={order.id} className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex flex-wrap justify-between mb-2">
-                      <div className="font-medium text-gray-800">Order #{order.id.substring(0, 8)}...</div>
-                      <div className="text-sm">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                          order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                          order.status === 'ready' ? 'bg-blue-100 text-blue-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-sm text-gray-500 mb-2">
-                      {order.created_at ? formatDate(order.created_at) : 'Date not available'}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {order.items?.slice(0, 2).map((item, index) => (
-                        <span key={index}>
-                          {item.quantity}x {item.name}
-                          {index < Math.min(2, order.items.length - 1) ? ', ' : ''}
-                        </span>
-                      ))}
-                      {order.items?.length > 2 && ` and ${order.items.length - 2} more`}
-                    </div>
-                    <div className="mt-2 text-sm font-medium text-gray-800">
-                      Total: ₹{order.total.toFixed(2)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <p>No orders yet. Start ordering delicious meals!</p>
-                <Link href="/menu" className="text-primary-600 mt-2 inline-block hover:text-primary-700">
-                  Browse Menu
-                </Link>
-              </div>
-            )}
-          </div>
-        </motion.div>
+        <FloatingCart />
       </div>
     </Layout>
   );
 }
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context: any) {
   const { req, res } = context;
   const cookies = req.cookies || {};
   
-  // Check authentication
   if (!cookies.token) {
     return {
       redirect: {
@@ -290,10 +375,7 @@ export async function getServerSideProps(context) {
     };
   }
   
-  // Get current pathname
   const currentPath = req.url;
-  
-  // Check role access - redirect if wrong dashboard for role
   const userRole = cookies.userRole || 'user';
   
   if (currentPath.startsWith('/admin') && userRole !== 'admin') {

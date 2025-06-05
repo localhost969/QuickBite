@@ -74,15 +74,17 @@ export default function AdminCouponsPage() {
   }, [coupons, activeTab]);
 
   return (
-    <AdminLayout>
+    <AdminLayout title="Coupons">
       <Head>
         <title>Coupon Management - Admin Dashboard</title>
       </Head>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="p-4 sm:p-6 bg-gradient-to-br from-gray-50/50 to-white min-h-screen">
         {/* Header and Create Button */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold">Coupon Management</h1>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
+          <div>
+            <p className="text-gray-600">Create and manage discount coupons for users.</p>
+          </div>
           <button
             onClick={() => {
               setNewCoupon({ ...newCoupon, code: generateRandomCode() });

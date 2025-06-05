@@ -251,38 +251,38 @@ export default function Orders() {
               <p className="mt-4 text-gray-500">Loading your orders...</p>
             </div>
           ) : orders.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
               {getFilteredOrders().map((order) => (
                 <motion.div
                   key={order.id}
                   layoutId={`order-card-${order.id}`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  whileHover={{ y: -3 }}
-                  className="bg-white rounded-xl shadow-md hover:shadow-lg overflow-hidden cursor-pointer touch-manipulation"
+                  whileHover={{ y: -5 }}
+                  className="bg-white rounded-2xl sm:rounded-3xl shadow-md hover:shadow-lg overflow-hidden cursor-pointer touch-manipulation"
                   onClick={() => {
                     setSelectedOrder(order);
                     setShowOrderDetails(true);
                   }}
                 >
                   {/* Order card header with status */}
-                  <div className={`p-3 relative ${
+                  <div className={`p-4 sm:p-5 relative ${
                     order.status === 'cancelled' ? 'bg-red-50' : 
                     order.status === 'completed' ? 'bg-green-50' : 
                     'bg-blue-50'
                   }`}>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="font-mono text-xs bg-white/80 backdrop-blur-sm px-2 py-0.5 rounded-full border border-gray-100">
+                    <div className="flex justify-between items-center mb-3 sm:mb-4">
+                      <span className="font-mono text-xs sm:text-sm bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full border border-gray-100">
                         #{order.id.substring(0, 8)}
                       </span>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClasses(order.status)}`}>
+                      <span className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${getStatusBadgeClasses(order.status)}`}>
                         {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                       </span>
                     </div>
                     
                     {/* Order progress bar */}
                     {order.status !== 'cancelled' && (
-                      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mb-2">
+                      <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-2 sm:mb-3">
                         <motion.div 
                           className="h-full bg-primary-600"
                           initial={{ width: "0%" }}
@@ -293,15 +293,15 @@ export default function Orders() {
                     )}
 
                     {/* Timestamp */}
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs sm:text-sm text-gray-500">
                       {formatDate(order.created_at)}
                     </div>
                   </div>
                   
                   {/* Order Content */}
-                  <div className="p-3">
+                  <div className="p-4 sm:p-5">
                     {/* Delivery option */}
-                    <div className="flex items-center gap-2 mb-2 text-xs text-gray-500">
+                    <div className="flex items-center gap-2 mb-3 text-xs sm:text-sm text-gray-500">
                       {order.delivery_option === 'PICKUP' ? (
                         <>
                           <BiPackage className="text-primary-600" />
@@ -316,59 +316,56 @@ export default function Orders() {
                     </div>
                     
                     {/* Item preview with images */}
-                    <div className="mb-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-sm font-medium text-gray-600">Items:</h3>
-                        <span className="text-xs text-gray-400">({order.items.length})</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {order.items.slice(0, 4).map((item, i) => (
+                    <div className="mb-4">
+                      <h3 className="font-medium text-gray-600 mb-2">Order Items:</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {order.items.slice(0, 3).map((item, i) => (
                           <div key={i} className="relative group">
-                            <div className="w-8 h-8 rounded-md overflow-hidden border border-gray-200">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden border border-gray-200">
                               <ImageWithFallback
                                 src={item.image_url || '/images/default-food.jpg'}
                                 alt={item.name}
                                 className="w-full h-full object-cover"
                               />
                             </div>
-                            <div className="absolute -top-1 -right-1 bg-primary-600 text-white w-3 h-3 rounded-full flex items-center justify-center text-xs leading-none">
+                            <div className="absolute -top-1 -right-1 bg-primary-600 text-white w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-xs">
                               {item.quantity}
                             </div>
                             
                             {/* Item name tooltip on hover */}
-                            <div className="absolute bottom-full left-0 mb-1 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-800 text-white text-xs rounded py-1 px-2 pointer-events-none whitespace-nowrap z-10">
+                            <div className="absolute bottom-full left-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-800 text-white text-xs rounded py-1 px-2 pointer-events-none whitespace-nowrap">
                               {item.name}
                             </div>
                           </div>
                         ))}
-                        {order.items.length > 4 && (
-                          <div className="w-8 h-8 rounded-md bg-gray-100 flex items-center justify-center text-gray-500 text-xs">
-                            +{order.items.length - 4}
+                        {order.items.length > 3 && (
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 text-sm">
+                            +{order.items.length - 3}
                           </div>
                         )}
                       </div>
                     </div>
                     
                     {/* Order meta info and actions */}
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                      <div className="font-bold text-gray-900 text-sm">
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                      <div className="font-bold text-gray-900">
                         ₹{order.total.toFixed(2)}
                       </div>
                       
-                      <div className="flex gap-1.5">
+                      <div className="flex gap-2">
                         {canBeCancelled(order) && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleCancelOrder(order.id);
                             }}
-                            className="px-3 py-1 text-xs text-red-600 border border-red-200 rounded-full hover:bg-red-50"
+                            className="px-4 py-1.5 text-xs sm:text-sm text-red-600 border border-red-200 rounded-full hover:bg-red-50"
                           >
                             Cancel
                           </button>
                         )}
                         <button 
-                          className="px-3 py-1 text-xs bg-primary-600 text-white rounded-full hover:bg-primary-700"
+                          className="px-4 py-1.5 text-xs sm:text-sm bg-primary-600 text-white rounded-full hover:bg-primary-700"
                         >
                           Details
                         </button>

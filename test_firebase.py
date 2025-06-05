@@ -5,7 +5,7 @@ import os
 def test_firebase_connection():
     try:
         # Initialize Firebase
-        cred = credentials.Certificate('serviceAccountKey.json')
+        cred = credentials.Certificate('firebase_credentials.json')
         firebase_admin.initialize_app(cred)
         
         # Get Firestore client

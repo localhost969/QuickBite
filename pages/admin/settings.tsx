@@ -55,9 +55,12 @@ export default function AdminSettings() {
 
   return (
     <RoleBasedGuard allowedRoles={['admin']}>
-      <AdminLayout>
-        <div className="max-w-xl mx-auto p-6">
-          <h1 className="text-2xl font-bold mb-6">Admin Settings</h1>
+      <AdminLayout title="Settings">
+        <div className="p-4 sm:p-6 bg-gradient-to-br from-gray-50/50 to-white min-h-screen">
+          <div className="max-w-xl mx-auto">
+            <div className="mb-6">
+              <p className="text-gray-600">Configure system settings and manage your admin account.</p>
+            </div>
           
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold mb-4">Change Password</h2>
@@ -110,6 +113,7 @@ export default function AdminSettings() {
                 {isLoading ? 'Updating...' : 'Update Password'}
               </button>
             </form>
+            </div>
           </div>
         </div>
       </AdminLayout>
