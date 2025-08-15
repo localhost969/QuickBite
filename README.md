@@ -29,22 +29,33 @@ vardan@qb.com
 ![image](https://github.com/user-attachments/assets/8644eb6c-c45c-4724-83e6-0d1a0338c434)
 
 
-![image](https://github.com/user-attachments/assets/ef0cecf1-4679-47d6-824e-88fd33bc1f6c)
-
-![image](https://github.com/user-attachments/assets/8779658e-49e6-47d8-971e-ffabf9ee6e28)
+<img width="1914" height="1080" alt="image" src="https://github.com/user-attachments/assets/ba9a05cf-0644-4b27-a209-3a3dc4d58304" />
 
 
-![image](https://github.com/user-attachments/assets/8db30eb9-15cb-4d21-bb64-edc2651d439f)
+<img width="1910" height="1080" alt="image" src="https://github.com/user-attachments/assets/bc930ae9-e56f-4ab0-b895-89edcfff774a" />
 
 
-![image](https://github.com/user-attachments/assets/fb0331a2-1f65-415c-b2d2-85273044a93a)
 
 
-![image](https://github.com/user-attachments/assets/8565a632-5984-46b5-88c2-776a5e196617)
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/2f3dee30-bbfe-48d2-9db4-b31c402cca92" />
+
+
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/88d063d9-c67c-4d62-84a4-416b43d4877c" />
+
+
+
+
+
+<img width="1908" height="1080" alt="image" src="https://github.com/user-attachments/assets/eec412ad-9df3-4a21-b776-774b170da7b2" />
+
 
 ![image](https://github.com/user-attachments/assets/657448ad-3491-49c6-abb8-bf1b149f540b)
 
-![image](https://github.com/user-attachments/assets/54cc953f-f524-4982-bf7f-be5f63f9ec50)
+
+<img width="1912" height="1080" alt="image" src="https://github.com/user-attachments/assets/6aa274bb-a057-45ba-a3e4-ac5dd5fd49c2" />
+
+
 
 
 
