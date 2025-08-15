@@ -56,63 +56,64 @@ export default function AdminSettings() {
   return (
     <RoleBasedGuard allowedRoles={['admin']}>
       <AdminLayout title="Settings">
-        <div className="p-4 sm:p-6 bg-gradient-to-br from-gray-50/50 to-white min-h-screen">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50/70 to-white mx-2 sm:mx-4 mt-2 sm:mt-4">
           <div className="max-w-xl mx-auto">
-            <div className="mb-6">
-              <p className="text-gray-600">Configure system settings and manage your admin account.</p>
+            <div className="mb-4">
+              <h1 className="text-xl font-semibold text-gray-800">Settings</h1>
+              <p className="text-gray-500 mt-1 text-sm">Configure system settings and manage your admin account.</p>
             </div>
           
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold mb-4">Change Password</h2>
-            
-            <form onSubmit={handleChangePassword} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Current Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={passwords.current}
-                  onChange={(e) => setPasswords({...passwords, current: e.target.value})}
-                  className="w-full p-2 border rounded-lg"
-                />
-              </div>
+            <div className="bg-white rounded-lg shadow border border-gray-100 p-6">
+              <h2 className="text-lg font-semibold mb-4 text-gray-800">Change Password</h2>
+              
+              <form onSubmit={handleChangePassword} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Current Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={passwords.current}
+                    onChange={(e) => setPasswords({...passwords, current: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-primary-200 text-sm bg-gray-50"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={passwords.new}
-                  onChange={(e) => setPasswords({...passwords, new: e.target.value})}
-                  className="w-full p-2 border rounded-lg"
-                />
-              </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={passwords.new}
+                    onChange={(e) => setPasswords({...passwords, new: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-primary-200 text-sm bg-gray-50"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Confirm New Password
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={passwords.confirm}
-                  onChange={(e) => setPasswords({...passwords, confirm: e.target.value})}
-                  className="w-full p-2 border rounded-lg"
-                />
-              </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Confirm New Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={passwords.confirm}
+                    onChange={(e) => setPasswords({...passwords, confirm: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-primary-200 text-sm bg-gray-50"
+                  />
+                </div>
 
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 disabled:opacity-50"
-              >
-                {isLoading ? 'Updating...' : 'Update Password'}
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full bg-primary-600 text-white py-2 rounded-md hover:bg-primary-700 disabled:opacity-50 text-sm font-semibold transition-colors"
+                >
+                  {isLoading ? 'Updating...' : 'Update Password'}
+                </button>
+              </form>
             </div>
           </div>
         </div>

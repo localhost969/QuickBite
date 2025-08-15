@@ -220,7 +220,7 @@ export default function Auth() {
     <div className="min-h-screen bg-gradient-to-tr from-primary-900 to-primary-700 flex flex-col">
       <Head>
         <title>
-          {mode === 'login' ? 'Login' : mode === 'signup' ? 'Sign Up' : 'Password Reset'} - QuickByte
+          {mode === 'login' ? 'Login' : mode === 'signup' ? 'Sign Up' : 'Password Reset'} - QuickBite
         </title>
       </Head>
 
@@ -237,7 +237,7 @@ export default function Auth() {
           <div className="relative z-10 flex flex-col h-full">
             <div className="flex items-center mb-12">
               <FaUtensils className="text-3xl text-primary-300 mr-3" />
-              <h1 className="text-3xl font-bold">QuickByte</h1>
+              <h1 className="text-3xl font-bold">QuickBite</h1>
             </div>
 
             <div className="my-auto">
@@ -289,7 +289,7 @@ export default function Auth() {
             </div>
             
             <div className="text-sm text-white/60 mt-auto">
-              &copy; {new Date().getFullYear()} QuickByte. All rights reserved.
+              &copy; {new Date().getFullYear()} QuickBite. All rights reserved.
             </div>
           </div>
         </div>
@@ -298,7 +298,7 @@ export default function Auth() {
         <div className="flex-1 flex flex-col bg-white md:rounded-l-3xl p-6 sm:p-8 md:p-12">
           <div className="md:hidden flex items-center mb-6">
             <FaUtensils className="text-2xl text-primary-600 mr-2" />
-            <h1 className="text-2xl font-bold text-gray-800">QuickByte</h1>
+            <h1 className="text-2xl font-bold text-gray-800">QuickBite</h1>
           </div>
           
           <div className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full">

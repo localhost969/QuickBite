@@ -59,7 +59,7 @@ export default function CanteenDashboard() {
   if (isLoading) {
     return (
       <CanteenLayout>
-        <div className="flex justify-center items-center h-screen">
+        <div className="flex justify-center items-center h-[70vh]">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       </CanteenLayout>
@@ -69,16 +69,20 @@ export default function CanteenDashboard() {
   return (
     <CanteenLayout>
       <Head>
-        <title>Dashboard | QuickByte Canteen</title>
+        <title>Dashboard | QuickBite Canteen</title>
       </Head>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Canteen Dashboard Overview</h1>
-          <p className="text-gray-600 mt-1">Monitor your canteen's performance and orders</p>
+      <div className="max-w-7xl mx-auto px-6 pb-10">
+        {/* Header section (unchanged) */}
+        <div className="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+          <div>
+            <h1 className="text-4xl font-extrabold text-blue-900 tracking-tight">Canteen Dashboard</h1>
+            <p className="text-base text-blue-700 mt-2">Monitor your canteen's performance and orders</p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Stats cards (unchanged) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           <DashboardCard
             title="Today's Orders"
             value={stats.totalOrders}
@@ -89,66 +93,84 @@ export default function CanteenDashboard() {
             title="Pending Orders"
             value={stats.pendingOrders}
             icon={FaClock}
-            color="amber"
+            color="blue"
           />
           <DashboardCard
             title="Completed Orders"
             value={stats.completedOrders}
             icon={FaCheckCircle}
-            color="green"
+            color="blue"
           />
           <DashboardCard
             title="Today's Revenue"
             value={`₹${stats.totalRevenue.toLocaleString()}`}
             icon={FaMoneyBillWave}
-            color="purple"
+            color="blue"
           />
         </div>
 
+        {/* Redesigned sections */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <h2 className="text-lg font-semibold mb-4">Recent Orders</h2>
-            <div className="space-y-4">
-              {stats.recentOrders.map((order: any) => (
-                <motion.div
-                  key={order.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex-shrink-0">
-                      <StatusBadge status={order.status} size="sm" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Order #{order.id.slice(0, 8)}</p>
-                      <p className="text-sm text-gray-500">
-                        {new Date(order.created_at).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                  <p className="font-semibold">₹{order.total.toLocaleString()}</p>
-                </motion.div>
-              ))}
+          {/* Recent Orders - Compact, professional table */}
+          <div className="bg-white rounded-xl shadow border border-blue-100 flex flex-col min-h-[320px] p-0">
+            <div className="px-6 pt-6 pb-2 flex items-center justify-between border-b border-blue-100">
+              <h2 className="text-xl font-bold text-blue-900">Recent Orders</h2>
+              <a href="/canteen/orders" className="text-blue-600 hover:underline text-sm font-medium">View all</a>
+            </div>
+            <div className="overflow-x-auto flex-1">
+              {stats.recentOrders.length === 0 ? (
+                <div className="text-center text-blue-700 py-12">No recent orders</div>
+              ) : (
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="bg-blue-50">
+                      <th className="px-4 py-2 text-left font-semibold text-blue-800">Order</th>
+                      <th className="px-4 py-2 text-left font-semibold text-blue-800">Date</th>
+                      <th className="px-4 py-2 text-left font-semibold text-blue-800">Status</th>
+                      <th className="px-4 py-2 text-right font-semibold text-blue-800">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stats.recentOrders.map((order: any) => (
+                      <motion.tr
+                        key={order.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="border-b border-blue-50 hover:bg-blue-50 transition"
+                      >
+                        <td className="px-4 py-2 font-medium text-blue-900">#{order.id.slice(0, 8)}</td>
+                        <td className="px-4 py-2 text-blue-700">{new Date(order.created_at).toLocaleString()}</td>
+                        <td className="px-4 py-2">
+                          <StatusBadge status={order.status} size="sm" />
+                        </td>
+                        <td className="px-4 py-2 text-right font-bold text-blue-900">₹{order.total.toLocaleString()}</td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-            <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-2 gap-4">
+          {/* Quick Actions - Compact, modern buttons */}
+          <div className="bg-white rounded-xl shadow border border-blue-100 flex flex-col min-h-[320px] p-0">
+            <div className="px-6 pt-6 pb-2 border-b border-blue-100">
+              <h2 className="text-xl font-bold text-blue-900">Quick Actions</h2>
+            </div>
+            <div className="grid grid-cols-2 gap-4 p-6">
               <button
                 onClick={() => window.location.href = '/canteen/orders'}
-                className="p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                className="flex flex-col items-center justify-center gap-2 py-4 bg-white hover:bg-blue-50 text-blue-700 rounded-lg shadow-sm border border-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 font-semibold"
               >
-                <FaShoppingCart className="w-6 h-6 text-blue-600 mb-2" />
-                <p className="font-medium">View Orders</p>
+                <FaShoppingCart className="w-6 h-6 text-blue-700" />
+                <span className="font-semibold text-base">View Orders</span>
               </button>
               <button
                 onClick={() => window.location.href = '/canteen/menu'}
-                className="p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+                className="flex flex-col items-center justify-center gap-2 py-4 bg-white hover:bg-blue-50 text-blue-700 rounded-lg shadow-sm border border-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 font-semibold"
               >
-                <FaUtensils className="w-6 h-6 text-green-600 mb-2" />
-                <p className="font-medium">Manage Menu</p>
+                <FaUtensils className="w-6 h-6 text-blue-700" />
+                <span className="font-semibold text-base">Manage Menu</span>
               </button>
             </div>
           </div>

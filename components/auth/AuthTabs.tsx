@@ -68,7 +68,7 @@ export default function AuthTabs() {
         localStorage.setItem('userEmail', data.email);
         localStorage.setItem('userName', data.name);
         
-        toast.success('Login successful!');
+        toast.success('Login successful!', { style: { backgroundColor: '#3B82F6', color: '#FFFFFF' } });
         
         // Role-based navigation
         switch (data.role) {
@@ -109,7 +109,7 @@ export default function AuthTabs() {
       const data = await response.json();
       
       if (response.ok) {
-        toast.success('Account created successfully! Please log in.');
+        toast.success('Account created successfully! Please log in.', { style: { backgroundColor: '#3B82F6', color: '#FFFFFF' } });
         setActiveTab('login');
         setLoginEmail(signupEmail);
       } else {
@@ -136,7 +136,7 @@ export default function AuthTabs() {
       const data = await response.json();
       
       if (response.ok) {
-        toast.success('Reset token sent to your email');
+        toast.success('Reset token sent to your email', { style: { backgroundColor: '#3B82F6', color: '#FFFFFF' } });
         setResetEmail(forgotEmail);
         setActiveTab('reset');
       } else {
@@ -167,7 +167,7 @@ export default function AuthTabs() {
       const data = await response.json();
       
       if (response.ok) {
-        toast.success('Password reset successfully!');
+        toast.success('Password reset successfully!', { style: { backgroundColor: '#3B82F6', color: '#FFFFFF' } });
         setActiveTab('login');
         setLoginEmail(resetEmail);
       } else {
@@ -182,7 +182,7 @@ export default function AuthTabs() {
   
   return (
     <div className="w-full max-w-md bg-white rounded-xl shadow-card p-8">
-      <h1 className="text-2xl font-semibold text-center text-textPrimary mb-6">QuickByte Auth</h1>
+      <h1 className="text-2xl font-semibold text-center text-textPrimary mb-6">QuickBite Auth</h1>
       
       <div className="grid grid-cols-4 gap-2 p-1 bg-background rounded-lg mb-6">
         <Tab 

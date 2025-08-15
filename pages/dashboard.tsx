@@ -284,73 +284,67 @@ export default function Dashboard() {
   return (
     <Layout>
       <Head>
-        <title>QuickByte | Your Food Dashboard</title>
+        <title>QuickBite | Your Food Dashboard</title>
         <meta name="description" content="Your personalized food ordering dashboard" />
       </Head>
 
-      <div className="min-h-screen bg-gray-50/50">
-        <div className="space-y-6">
-          <LazySection>
-            <WelcomeHero 
-              userName={user?.name || ''} 
-              loyaltyPoints={loyaltyStatus?.points || 0}
-              loyaltyTier={loyaltyStatus?.tier || 'Bronze'}
-            />
-          </LazySection>
+      <div className="min-h-screen bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-6 space-y-6">
+            {/* Welcome Section (with Stats) */}
+            <LazySection>
+              <WelcomeHero 
+                userName={user?.name || ''} 
+                loyaltyPoints={0}
+                loyaltyTier="Member"
+                totalOrders={statsData.ordersThisWeek}
+                totalSpent={statsData.totalSpent}
+                avgDelivery={"28 min"}
+              />
+            </LazySection>
 
-          <div className="container mx-auto px-4">
-            <div className="max-w-7xl mx-auto">
-              <LazySection>
-                <StatsCards totalSaved={(statsData.totalSpent * 0.1) || 0} />
-              </LazySection>
-            </div>
-          </div>
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Primary Content - Left Column (8 cols) */}
+              <div className="lg:col-span-8 space-y-6">
+                {/* Trending Items */}
+                <LazySection>
+                  <FoodDiscoveriesSection
+                    products={trendingItems}
+                    onToggleFavorite={toggleFavorite}
+                    isFavorite={isFavorite}
+                  />
+                </LazySection>
 
-          <div className="container mx-auto px-4">
-            <div className="max-w-7xl mx-auto space-y-6">
-              {/* God Level Dashboard Layout - Master Grid */}
-              <div className="grid grid-cols-12 gap-6">
-                {/* Row 1: Food Discoveries (8 cols) + Recent Orders (4 cols) */}
-                <div className="col-span-12 lg:col-span-8">
-                  <LazySection>
-                    <FoodDiscoveriesSection
-                      products={trendingItems}
-                      onToggleFavorite={toggleFavorite}
-                      isFavorite={isFavorite}
-                    />
-                  </LazySection>
-                </div>
+                {/* Special Deals */}
+                <LazySection>
+                  <SpecialDealsSection
+                    products={discountedItems}
+                    onToggleFavorite={toggleFavorite}
+                    isFavorite={isFavorite}
+                  />
+                </LazySection>
+              </div>
 
-                <div className="col-span-12 lg:col-span-4">
-                  <LazySection>
-                    <RecentOrdersSection
-                      orders={recentOrders}
-                      onViewOrder={() => router.push('/orders')}
-                    />
-                  </LazySection>
-                </div>
+              {/* Sidebar - Right Column (4 cols) */}
+              <div className="lg:col-span-4 space-y-6">
+                {/* Recent Orders */}
+                <LazySection>
+                  <RecentOrdersSection
+                    orders={recentOrders}
+                    onViewOrder={() => router.push('/orders')}
+                  />
+                </LazySection>
 
-                {/* Row 2: Special Deals (8 cols) + Favorites (4 cols) */}
-                <div className="col-span-12 lg:col-span-8">
-                  <LazySection>
-                    <SpecialDealsSection
-                      products={discountedItems}
-                      onToggleFavorite={toggleFavorite}
-                      isFavorite={isFavorite}
-                    />
-                  </LazySection>
-                </div>
-
-                <div className="col-span-12 lg:col-span-4">
-                  <LazySection>
-                    <FavoritesSection
-                      favorites={favorites || []}
-                      onAddToCart={handleAddToCart}
-                      onRemoveFavorite={handleRemoveFavorite}
-                      isLoading={favoritesLoading}
-                    />
-                  </LazySection>
-                </div>
+                {/* Favorites */}
+                <LazySection>
+                  <FavoritesSection
+                    favorites={favorites || []}
+                    onAddToCart={handleAddToCart}
+                    onRemoveFavorite={handleRemoveFavorite}
+                    isLoading={favoritesLoading}
+                  />
+                </LazySection>
               </div>
             </div>
           </div>

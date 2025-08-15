@@ -10,7 +10,7 @@ export default function WalletPage() {
   const [transactions, setTransactions] = useState([]);
   const [voucherCode, setVoucherCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isCompactView, setIsCompactView] = useState(false);
+  const isCompactView = true; // Set compact view as default and remove toggle
 
   useEffect(() => {
     fetchWalletData();
@@ -164,13 +164,6 @@ export default function WalletPage() {
               <h1 className="text-3xl font-bold text-gray-900">My Wallet</h1>
               <p className="text-gray-600 mt-1">Manage your balance and transactions</p>
             </div>
-            <button
-              onClick={() => setIsCompactView(!isCompactView)}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              {isCompactView ? <FaExpand className="w-4 h-4" /> : <FaCompress className="w-4 h-4" />}
-              {isCompactView ? 'Expanded View' : 'Compact View'}
-            </button>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -217,13 +210,13 @@ export default function WalletPage() {
                   </div>
                 </div>
                 
-                <div className={`${isCompactView ? 'max-h-96 overflow-y-auto' : ''}`}>
+                <div className="max-h-96 overflow-y-auto">
                   {transactions.length > 0 ? (
                     <div className="divide-y divide-gray-100">
                       {transactions.map((transaction: any, index: number) => (
                         <motion.div
                           key={transaction.id}
-                          className={`${isCompactView ? 'px-4 py-3' : 'px-6 py-4'} hover:bg-gray-50 transition-colors`}
+                          className="px-4 py-3 hover:bg-gray-50 transition-colors"
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.05 }}

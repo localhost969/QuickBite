@@ -97,34 +97,26 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
 
   const sidebarVariants = {
     open: {
-      x: 0,
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 30,
-      }
+      width: 220,
+      transition: { type: "spring", stiffness: 300, damping: 30 }
     },
     closed: {
-      x: "-100%",
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 30,
-      }
+      width: 64,
+      transition: { type: "spring", stiffness: 300, damping: 30 }
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Modern Header */}
-      <header className="bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200/50 fixed w-full z-50">
-        <div className="px-4 lg:px-6">
-          <div className="flex justify-between items-center h-16">
+      {/* Compact Header */}
+      <header className="bg-white/90 backdrop-blur-lg shadow-sm border-b border-gray-200/50 fixed w-full z-50">
+        <div className="px-2 lg:px-4">
+          <div className="flex justify-between items-center h-14">
             {/* Left Section */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="lg:hidden p-2 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors"
+                className="lg:hidden p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
               >
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -138,35 +130,30 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
                   </motion.div>
                 </AnimatePresence>
               </button>
-              
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-sm">QB</span>
                 </div>
-                <div className="hidden sm:block">
-                  <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent">
-                    QuickBite Admin
+                <div className="hidden md:block">
+                  <h1 className="text-lg font-bold bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent">
+                    QuickBite
                   </h1>
                   <p className="text-xs text-gray-500 font-medium">{getCurrentPageTitle()}</p>
                 </div>
               </div>
             </div>
-
             {/* Right Section */}
-            <div className="flex items-center gap-3">
-              {/* Time Display */}
-              <div className="hidden md:block text-sm text-gray-600">
+            <div className="flex items-center gap-2">
+              <div className="hidden md:block text-xs text-gray-600">
                 {currentTime.toLocaleTimeString('en-US', { 
                   hour: '2-digit', 
                   minute: '2-digit',
                   hour12: true 
                 })}
               </div>
-
-              {/* User Menu */}
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-gray-200"
+                className="flex items-center gap-2 px-3 py-1.5 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-gray-200 text-xs"
                 title="Logout"
               >
                 <FaSignOutAlt className="w-4 h-4" />
@@ -177,96 +164,77 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
         </div>
       </header>
 
-      <div className="flex pt-16">
-        {/* Modern Sidebar */}
+      <div className="flex pt-14">
+        {/* Redesigned Sidebar */}
         <AnimatePresence>
           {(isSidebarOpen || isLargeScreen) && (
             <motion.aside
               variants={sidebarVariants}
               initial="closed"
-              animate="open"
+              animate={isSidebarOpen || isLargeScreen ? "open" : "closed"}
               exit="closed"
               className={`
-                fixed lg:relative inset-y-0 left-0 z-40 
-                w-72 bg-white/90 backdrop-blur-xl border-r border-gray-200/50
-                ${isSidebarOpen ? 'block' : 'hidden lg:block'}
+                group
+                fixed
+                top-14
+                left-0
+                z-40
+                bg-white/95 backdrop-blur-xl border-r border-gray-200/50
+                flex flex-col justify-between
+                transition-all duration-200
+                ${isSidebarOpen || isLargeScreen ? 'block' : 'hidden lg:block'}
+                h-screen
               `}
+              style={{ minWidth: 64, maxWidth: 220 }}
             >
-              <div className="p-6 h-full overflow-y-auto">
+              <div className="flex-1 flex flex-col gap-1 py-3">
                 {/* Navigation */}
-                <nav className="space-y-2">
+                <nav className="flex flex-col gap-1">
                   {menuItems.map((item, index) => {
                     const isActive = router.pathname === item.path;
                     const Icon = item.icon;
-                    
                     return (
                       <Link key={item.path} href={item.path}>
                         <motion.div
-                          whileHover={{ x: 4 }}
+                          whileHover={{ scale: 1.03 }}
                           whileTap={{ scale: 0.98 }}
                           className={`
-                            group relative flex items-center gap-4 p-4 rounded-xl transition-all duration-200
+                            group flex items-center gap-3 px-3 py-2 rounded-lg mx-2 my-0.5 cursor-pointer
+                            transition-all duration-150
                             ${isActive 
-                              ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/25' 
-                              : 'text-gray-700 hover:bg-gray-100/80 hover:text-primary-600'
+                              ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow'
+                              : 'text-gray-700 hover:bg-gray-100/90 hover:text-primary-600'
                             }
-                            ${index === 0 ? 'mt-0' : ''}
                           `}
+                          title={item.name}
                         >
-                          {/* Active Indicator */}
-                          {isActive && (
-                            <motion.div
-                              layoutId="activeTab"
-                              className="absolute inset-0 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl"
-                              initial={false}
-                              transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                            />
-                          )}
-                          
-                          <div className="relative z-10 flex items-center gap-4 w-full">
-                            <Icon className={`w-5 h-5 flex-shrink-0 ${
-                              isActive ? 'text-white' : 'text-gray-500 group-hover:text-primary-500'
-                            }`} />
-                            <div className="flex-1 min-w-0">
-                              <p className={`font-medium ${isActive ? 'text-white' : ''}`}>
-                                {item.name}
-                              </p>
-                              <p className={`text-xs opacity-75 ${
-                                isActive ? 'text-white/80' : 'text-gray-500'
-                              }`}>
-                                {item.description}
-                              </p>
-                            </div>
-                          </div>
+                          <Icon className={`w-5 h-5 flex-shrink-0 ${
+                            isActive ? 'text-white' : 'text-gray-400 group-hover:text-primary-500'
+                          }`} />
+                          <span className={`
+                            transition-all duration-200
+                            overflow-hidden whitespace-nowrap
+                            ${isSidebarOpen || isLargeScreen ? 'opacity-100 w-auto ml-1 text-sm font-medium' : 'opacity-0 w-0 ml-0'}
+                          `}>
+                            {item.name}
+                          </span>
                         </motion.div>
                       </Link>
                     );
                   })}
                 </nav>
-
-                {/* Bottom Section - Only show when sidebar is visible */}
-                {(isSidebarOpen || isLargeScreen) && (
-                  <div className="absolute bottom-6 left-6 right-6">
-                    <div className="bg-gradient-to-r from-primary-50 to-primary-100 rounded-xl p-4 border border-primary-200">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center">
-                          <FaUserCircle className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-primary-900">Admin User</p>
-                          <p className="text-xs text-primary-600">System Administrator</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
+             
             </motion.aside>
           )}
         </AnimatePresence>
 
         {/* Main Content Area */}
-        <main className="flex-1 min-h-screen">
+        <main
+          className={`flex-1 min-h-screen transition-all duration-200 ${
+            isLargeScreen ? 'ml-[220px]' : ''
+          }`}
+        >
           <div className="h-full">
             {children}
           </div>
@@ -280,7 +248,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+            className="fixed inset-0 bg-black/40 z-30 lg:hidden"
             onClick={() => setIsSidebarOpen(false)}
           />
         )}

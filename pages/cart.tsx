@@ -229,7 +229,7 @@ export default function Cart() {
   return (
     <Layout>
       <Head>
-        <title>Cart - QuickByte</title>
+        <title>Cart - QuickBite</title>
         <meta name="description" content="Your shopping cart" />
       </Head>
 

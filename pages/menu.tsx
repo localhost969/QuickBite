@@ -166,7 +166,7 @@ export default function MenuPage() {
     <AuthGuard>
       <Layout>
         <Head>
-          <title>Menu - QuickByte</title>
+          <title>Menu - QuickBite</title>
           <meta name="description" content="Browse our food menu and place your order" />
         </Head>
         

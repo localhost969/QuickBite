@@ -7,7 +7,7 @@ export default function NotFound() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col items-center justify-center p-4">
       <Head>
-        <title>Page Not Found - QuickByte</title>
+        <title>Page Not Found - QuickBite</title>
         <meta name="description" content="Page not found" />
       </Head>
 

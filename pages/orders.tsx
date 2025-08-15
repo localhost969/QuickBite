@@ -194,57 +194,51 @@ export default function Orders() {
     <AuthGuard>
       <Layout>
         <Head>
-          <title>My Orders - QuickByte</title>
+          <title>My Orders - QuickBite</title>
           <meta name="description" content="View your order history" />
         </Head>
 
         <div className="container mx-auto px-4 py-6 sm:py-8 bg-gray-50 min-h-screen">
-          {/* Mobile-friendly header */}
-          <div className="relative mb-6 sm:mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">My Orders</h1>
-                <p className="text-gray-500">Track and manage your food orders</p>
-              </div>
-              
-              {!isLoading && orders.length > 0 && (
-                <motion.button 
-                  className="bg-primary-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-full flex items-center gap-2 hover:bg-primary-700 transition-colors shadow-md active:scale-95 touch-manipulation w-full sm:w-auto justify-center"
-                  onClick={() => router.push('/menu')}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <FaUtensils />
-                  <span>Order More</span>
-                </motion.button>
-              )}
-            </div>
-
-            {/* Mobile-optimized filter tabs - Scrollable */}
+          {/* Uniform header */}
+          <div className="flex items-center mb-6">
+            <h1 className="text-3xl font-bold text-gray-800">My Orders</h1>
+            {/* Order More button (if orders exist) */}
             {!isLoading && orders.length > 0 && (
-              <div className="bg-white rounded-xl shadow-md p-1.5 mb-6 flex overflow-x-auto scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0">
-                {[
-                  { id: 'all', label: 'All Orders' },
-                  { id: 'active', label: 'Active Orders' },
-                  { id: 'completed', label: 'Completed' },
-                  { id: 'cancelled', label: 'Cancelled' }
-                ].map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl whitespace-nowrap font-medium transition-all flex-shrink-0 touch-manipulation ${
-                      activeTab === tab.id 
-                        ? 'bg-primary-600 text-white shadow-md' 
-                        : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
+              <motion.button 
+                className="ml-auto bg-primary-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-full flex items-center gap-2 hover:bg-primary-700 transition-colors shadow-md active:scale-95 touch-manipulation"
+                onClick={() => router.push('/menu')}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <FaUtensils />
+                <span>Order More</span>
+              </motion.button>
             )}
           </div>
-
+          <p className="text-gray-500 mb-6">Track and manage your food orders</p>
+          {/* Mobile-optimized filter tabs - Scrollable */}
+          {!isLoading && orders.length > 0 && (
+            <div className="bg-white rounded-xl shadow-md p-1.5 mb-6 flex overflow-x-auto scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0">
+              {[
+                { id: 'all', label: 'All Orders' },
+                { id: 'active', label: 'Active Orders' },
+                { id: 'completed', label: 'Completed' },
+                { id: 'cancelled', label: 'Cancelled' }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl whitespace-nowrap font-medium transition-all flex-shrink-0 touch-manipulation ${
+                    activeTab === tab.id 
+                      ? 'bg-primary-600 text-white shadow-md' 
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          )}
           {isLoading ? (
             <div className="flex flex-col items-center justify-center h-64">
               <div className="w-20 h-20 border-t-4 border-b-4 border-primary-600 rounded-full animate-spin"></div>
@@ -281,7 +275,7 @@ export default function Orders() {
                     </div>
                     
                     {/* Order progress bar */}
-                    {order.status !== 'cancelled' && (
+                    {order.status !== 'cancelled' && order.status !== 'completed' && (
                       <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mb-2">
                         <motion.div 
                           className="h-full bg-primary-600"
@@ -460,7 +454,7 @@ export default function Orders() {
                   </div>
                   
                   {/* Order timeline - visual status representation */}
-                  {selectedOrder.status !== 'cancelled' && (
+                  {selectedOrder.status !== 'cancelled' && selectedOrder.status !== 'completed' && (
                     <div className="bg-white p-4 border-b">
                       <div className="flex justify-between relative">
                         {/* Progress line behind status points */}
@@ -561,24 +555,30 @@ export default function Orders() {
                     <div>
                       <h4 className="font-medium text-gray-500 mb-2">ORDER ITEMS ({selectedOrder.items.length})</h4>
                       <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto space-y-4">
-                        {selectedOrder.items.map((item, index) => (
-                          <div key={index} className="flex gap-3 bg-white p-3 rounded-lg shadow-sm">
-                            <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
-                              <ImageWithFallback
-                                src={item.image_url || '/images/default-food.jpg'}
-                                alt={item.name}
-                                className="h-full w-full object-cover"
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <h5 className="font-medium text-gray-800">{item.name}</h5>
-                              <div className="flex justify-between items-center mt-1">
-                                <span className="text-gray-500 text-sm">{item.quantity} × ₹{item.price.toFixed(2)}</span>
-                                <span className="font-medium">₹{(item.quantity * item.price).toFixed(2)}</span>
+                        {selectedOrder.items
+                          .filter(item => typeof item.price === 'number' && !isNaN(item.price) && item.price > 0)
+                          .map((item, index) => (
+                            <div key={index} className="flex gap-3 bg-white p-3 rounded-lg shadow-sm">
+                              <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
+                                <ImageWithFallback
+                                  src={item.image_url || '/images/default-food.jpg'}
+                                  alt={item.name}
+                                  className="h-full w-full object-cover"
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <h5 className="font-medium text-gray-800">{item.name}</h5>
+                                <div className="flex justify-between items-center mt-1">
+                                  <span className="text-gray-500 text-sm">
+                                    {item.quantity} × ₹{item.price.toFixed(2)}
+                                  </span>
+                                  <span className="font-medium">
+                                    ₹{(item.quantity * item.price).toFixed(2)}
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
                       </div>
                     </div>
                   </div>

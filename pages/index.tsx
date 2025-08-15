@@ -28,7 +28,7 @@ export default function Home() {
 
   const testimonials = [
     {
-      quote: "QuickByte has transformed how I eat at college. No more waiting in long lines!",
+      quote: "QuickBite has transformed how I eat at college. No more waiting in long lines!",
       author: "Sarah J.",
       role: "Computer Science Student"
     },
@@ -69,8 +69,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <Head>
-        <title>QuickByte - Quick and Easy Food Ordering</title>
-        <meta name="description" content="Order food quickly and easily with QuickByte" />
+        <title>QuickBite - Quick and Easy Food Ordering</title>
+        <meta name="description" content="Order food quickly and easily with QuickBite" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -79,7 +79,7 @@ export default function Home() {
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FaUtensils className="text-primary-600 text-xl" />
-            <span className="text-xl font-semibold text-gray-800">QuickByte</span>
+            <span className="text-xl font-semibold text-gray-800">QuickBite</span>
           </div>
           <nav className="hidden md:flex items-center space-x-6">
             <Link href="#features" className="text-gray-600 hover:text-primary-600 transition-colors">
@@ -119,7 +119,7 @@ export default function Home() {
           >
             <div className="flex items-center gap-2 mb-6">
               <FaUtensils className="text-primary-600 text-3xl" />
-              <h1 className="text-3xl font-bold text-gray-800">QuickByte</h1>
+              <h1 className="text-3xl font-bold text-gray-800">QuickBite</h1>
             </div>
             <h2 className="text-5xl font-bold text-gray-900 mb-6">
               Quick and Easy Food Ordering for Students
@@ -265,7 +265,7 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              Why Choose QuickByte?
+              Why Choose QuickBite?
             </motion.h2>
             <motion.p 
               className="text-gray-600 max-w-2xl mx-auto"
@@ -313,7 +313,7 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              How QuickByte Works
+              How QuickBite Works
             </motion.h2>
             <motion.p 
               className="text-gray-600 max-w-2xl mx-auto"
@@ -393,7 +393,7 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              Hear from students who use QuickByte every day.
+              Hear from students who use QuickBite every day.
             </motion.p>
           </div>
 
@@ -443,7 +443,7 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              Join thousands of students who are saving time and enjoying better meals with QuickByte.
+              Join thousands of students who are saving time and enjoying better meals with QuickBite.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -476,7 +476,7 @@ export default function Home() {
             <div>
               <div className="flex items-center gap-2 mb-6">
                 <FaUtensils className="text-primary-500 text-xl" />
-                <span className="text-xl font-semibold text-white">QuickByte</span>
+                <span className="text-xl font-semibold text-white">QuickBite</span>
               </div>
               <p className="mb-6">
                 Making campus dining fast, convenient, and delicious for students and faculty.
@@ -531,7 +531,7 @@ export default function Home() {
                     <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                     <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                   </svg>
-                  <a href="mailto:contact@quickbyte.com" className="hover:text-white transition-colors">contact@quickbyte.com</a>
+                  <a href="mailto:contact@QuickBite.com" className="hover:text-white transition-colors">contact@QuickBite.com</a>
                 </li>
                 <li className="flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -543,7 +543,7 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-12 pt-6 text-center">
-            <p>&copy; {new Date().getFullYear()} QuickByte. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} QuickBite. All rights reserved.</p>
           </div>
         </div>
       </footer>

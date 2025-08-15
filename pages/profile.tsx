@@ -152,8 +152,8 @@ export default function Profile() {
   return (
     <Layout>
       <Head>
-        <title>My Profile - QuickByte</title>
-        <meta name="description" content="Manage your QuickByte profile" />
+        <title>My Profile - QuickBite</title>
+        <meta name="description" content="Manage your QuickBite profile" />
       </Head>
 
       <div className="container mx-auto px-4 py-8">

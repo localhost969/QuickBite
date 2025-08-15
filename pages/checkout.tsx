@@ -242,7 +242,7 @@ export default function CheckoutPage() {
     <AuthGuard>
       <Layout>
         <Head>
-          <title>Checkout - QuickByte</title>
+          <title>Checkout - QuickBite</title>
           <meta name="description" content="Complete your order" />
         </Head>
 

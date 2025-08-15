@@ -79,25 +79,26 @@ export default function AdminCouponsPage() {
         <title>Coupon Management - Admin Dashboard</title>
       </Head>
 
-      <div className="p-4 sm:p-6 bg-gradient-to-br from-gray-50/50 to-white min-h-screen">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50/70 to-white mx-2 sm:mx-4 mt-2 sm:mt-4">
         {/* Header and Create Button */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
+        <div className="bg-white rounded-lg shadow border border-gray-100 p-4 mb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div>
-            <p className="text-gray-600">Create and manage discount coupons for users.</p>
+            <h1 className="text-xl font-semibold text-gray-800">Coupon Management</h1>
+            <p className="text-gray-500 mt-1 text-sm">Create and manage discount coupons for users.</p>
           </div>
           <button
             onClick={() => {
               setNewCoupon({ ...newCoupon, code: generateRandomCode() });
               setShowCreateModal(true);
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+            className="inline-flex items-center px-3 py-1 text-xs font-medium text-primary-700 bg-primary-50 rounded-md hover:bg-primary-100 transition-colors border border-primary-100"
           >
-            <FaPlus /> Create Coupon
+            <FaPlus className="mr-1" /> Create Coupon
           </button>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           {[
             {
               title: 'Total Coupons',
@@ -117,39 +118,37 @@ export default function AdminCouponsPage() {
           ].map((stat, index) => (
             <div
               key={index}
-              className="bg-white rounded-xl shadow-sm p-6 border border-gray-100"
+              className="bg-white rounded-lg shadow border border-gray-100 p-4 flex items-center gap-3"
             >
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  {stat.icon}
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold">{stat.value}</p>
-                </div>
+              <div className="p-2 bg-gray-50 rounded-lg">
+                {stat.icon}
+              </div>
+              <div>
+                <p className="text-xs text-gray-600">{stat.title}</p>
+                <p className="text-lg font-bold">{stat.value}</p>
               </div>
             </div>
           ))}
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-4 mb-6">
+        <div className="flex gap-2 mb-4">
           <button
             onClick={() => setActiveTab('unused')}
-            className={`px-4 py-2 rounded-lg transition-colors ${
+            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors border ${
               activeTab === 'unused'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-primary-500 text-white border-primary-500 shadow'
+                : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-primary-50 hover:text-primary-600'
             }`}
           >
             Unused Coupons ({coupons.filter(c => !c.is_used).length})
           </button>
           <button
             onClick={() => setActiveTab('used')}
-            className={`px-4 py-2 rounded-lg transition-colors ${
+            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors border ${
               activeTab === 'used'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-primary-500 text-white border-primary-500 shadow'
+                : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-primary-50 hover:text-primary-600'
             }`}
           >
             Used Coupons ({coupons.filter(c => c.is_used).length})
@@ -157,28 +156,28 @@ export default function AdminCouponsPage() {
         </div>
 
         {/* Coupons Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredCoupons.map((coupon) => (
             <motion.div
               key={coupon.code}
               layout
-              className={`bg-white rounded-xl shadow-sm overflow-hidden border ${
-                coupon.is_used ? 'border-gray-200' : 'border-primary-100'
+              className={`bg-white rounded-lg shadow border ${
+                coupon.is_used ? 'border-gray-100' : 'border-primary-100'
               }`}
             >
               <div className={`p-4 ${coupon.is_used ? 'bg-gray-50' : 'bg-primary-50'}`}>
                 <div className="flex justify-between items-center">
                   <button
                     onClick={() => handleCopyCode(coupon.code)}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg hover:bg-gray-50 transition-colors border border-gray-200"
+                    className="flex items-center gap-2 px-3 py-1 text-xs font-mono font-medium bg-white rounded-md hover:bg-gray-50 transition-colors border border-gray-200"
                   >
-                    <span className="font-mono font-medium">{coupon.code}</span>
+                    {coupon.code}
                     <FaCopy className="text-gray-400" />
                   </button>
-                  <span className={`text-sm px-2 py-1 rounded-full ${
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                     coupon.is_used 
-                      ? 'bg-gray-100 text-gray-600' 
-                      : 'bg-green-100 text-green-600'
+                      ? 'bg-gray-100 text-gray-600 border border-gray-200'
+                      : 'bg-green-50 text-green-700 border border-green-100'
                   }`}>
                     {coupon.is_used ? 'Used' : 'Active'}
                   </span>
@@ -187,22 +186,22 @@ export default function AdminCouponsPage() {
               
               <div className="p-4">
                 <div className="flex justify-between mb-2">
-                  <span className="text-gray-600">Amount</span>
-                  <span className="font-medium">₹{coupon.amount}</span>
+                  <span className="text-xs text-gray-600">Amount</span>
+                  <span className="font-medium text-sm">₹{coupon.amount}</span>
                 </div>
                 <div className="flex justify-between mb-2">
-                  <span className="text-gray-600">Expires</span>
-                  <span className="font-medium">{coupon.expiry}</span>
+                  <span className="text-xs text-gray-600">Expires</span>
+                  <span className="font-medium text-sm">{coupon.expiry}</span>
                 </div>
                 {coupon.is_used && (
                   <>
                     <div className="flex justify-between mb-2">
-                      <span className="text-gray-600">Used By</span>
-                      <span className="font-medium">{coupon.used_by}</span>
+                      <span className="text-xs text-gray-600">Used By</span>
+                      <span className="font-medium text-sm">{coupon.used_by}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Used On</span>
-                      <span className="font-medium">
+                      <span className="text-xs text-gray-600">Used On</span>
+                      <span className="font-medium text-sm">
                         {new Date(coupon.used_at).toLocaleDateString()}
                       </span>
                     </div>
@@ -215,12 +214,12 @@ export default function AdminCouponsPage() {
 
         {/* Empty State */}
         {filteredCoupons.length === 0 && (
-          <div className="text-center py-12 bg-white rounded-xl shadow-sm">
-            <FaTicketAlt className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">
+          <div className="text-center py-12 bg-white rounded-lg shadow border border-gray-100 mt-4">
+            <FaTicketAlt className="mx-auto h-10 w-10 text-gray-300" />
+            <h3 className="mt-3 text-base font-medium text-gray-700">
               No {activeTab} coupons
             </h3>
-            <p className="mt-2 text-gray-500">
+            <p className="mt-1 text-xs text-gray-500">
               {activeTab === 'unused' 
                 ? 'Create new coupons to get started'
                 : 'No coupons have been used yet'}
@@ -228,7 +227,7 @@ export default function AdminCouponsPage() {
           </div>
         )}
 
-        {/* Create Coupon Modal - Fixed Centering */}
+        {/* Create Coupon Modal */}
         <AnimatePresence>
           {showCreateModal && (
             <>
@@ -245,11 +244,11 @@ export default function AdminCouponsPage() {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="w-full max-w-lg bg-white rounded-2xl shadow-xl relative mx-auto"
+                    className="w-full max-w-lg bg-white rounded-lg shadow-xl border border-gray-100 relative mx-auto"
                   >
                     <div className="p-6">
                       <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-bold">Create New Coupon</h2>
+                        <h2 className="text-lg font-semibold text-gray-800">Create New Coupon</h2>
                         <button
                           onClick={() => setShowCreateModal(false)}
                           className="p-2 hover:bg-gray-100 rounded-full"
@@ -258,11 +257,11 @@ export default function AdminCouponsPage() {
                         </button>
                       </div>
 
-                      <form onSubmit={handleCreateCoupon} className="space-y-5">
+                      <form onSubmit={handleCreateCoupon} className="space-y-4">
                         {/* Coupon Code Field */}
-                        <div className="space-y-2">
+                        <div className="space-y-1">
                           <div className="flex justify-between items-center">
-                            <label className="text-sm font-medium text-gray-700">
+                            <label className="text-xs font-medium text-gray-700">
                               Coupon Code
                             </label>
                             <button
@@ -277,24 +276,24 @@ export default function AdminCouponsPage() {
                             type="text"
                             value={newCoupon.code}
                             onChange={(e) => setNewCoupon({ ...newCoupon, code: e.target.value.toUpperCase() })}
-                            className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-primary-500 font-mono bg-gray-50"
+                            className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-primary-200 font-mono bg-gray-50 text-sm"
                             placeholder="XXXX-XXXX"
                             required
                           />
                         </div>
 
                         {/* Amount Field */}
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700">
+                        <div className="space-y-1">
+                          <label className="text-xs font-medium text-gray-700">
                             Amount (₹)
                           </label>
                           <div className="relative">
-                            <span className="absolute left-3 top-3.5 text-gray-500">₹</span>
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">₹</span>
                             <input
                               type="number"
                               value={newCoupon.amount}
                               onChange={(e) => setNewCoupon({ ...newCoupon, amount: e.target.value })}
-                              className="w-full p-3 pl-7 border rounded-xl focus:ring-2 focus:ring-primary-500"
+                              className="w-full px-7 py-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-primary-200 text-sm"
                               placeholder="Enter amount"
                               required
                             />
@@ -302,14 +301,14 @@ export default function AdminCouponsPage() {
                         </div>
 
                         {/* Expiry Field */}
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700">
+                        <div className="space-y-1">
+                          <label className="text-xs font-medium text-gray-700">
                             Valid for
                           </label>
                           <select
                             value={newCoupon.expiry}
                             onChange={(e) => setNewCoupon({ ...newCoupon, expiry: parseInt(e.target.value) })}
-                            className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-primary-500 bg-gray-50"
+                            className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-primary-200 bg-gray-50 text-sm"
                           >
                             <option value={7}>7 days</option>
                             <option value={15}>15 days</option>
@@ -319,17 +318,17 @@ export default function AdminCouponsPage() {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex gap-3 pt-4">
+                        <div className="flex gap-3 pt-2">
                           <button
                             type="button"
                             onClick={() => setShowCreateModal(false)}
-                            className="flex-1 py-3 px-4 text-gray-700 rounded-xl hover:bg-gray-100 transition-colors border"
+                            className="flex-1 py-2 px-4 text-gray-700 rounded-md hover:bg-gray-100 transition-colors border border-gray-200 text-sm"
                           >
                             Cancel
                           </button>
                           <button
                             type="submit"
-                            className="flex-1 py-3 px-4 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors"
+                            className="flex-1 py-2 px-4 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors text-sm"
                           >
                             Create Coupon
                           </button>

@@ -77,14 +77,14 @@ export default function ForgotPassword() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <Head>
-        <title>Forgot Password - QuickByte</title>
-        <meta name="description" content="Reset your QuickByte password" />
+        <title>Forgot Password - QuickBite</title>
+        <meta name="description" content="Reset your QuickBite password" />
       </Head>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <Link href="/" className="flex items-center justify-center gap-2">
           <FaUtensils className="text-primary-600 text-2xl" />
-          <h1 className="text-2xl font-bold text-gray-800">QuickByte</h1>
+          <h1 className="text-2xl font-bold text-gray-800">QuickBite</h1>
         </Link>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           {showResetForm ? 'Reset Password' : 'Forgot Password'}

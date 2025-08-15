@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import AdminLayout from '../../components/layout/AdminLayout';
 import { 
   FaUsers, FaStore, FaChartBar, FaMoneyBillWave, 
-  FaTimesCircle, FaUndo, FaArrowUp, FaArrowDown 
+  FaTimesCircle, FaUndo, FaArrowUp, FaArrowDown, FaUserCircle
 } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -111,43 +111,32 @@ export default function AdminDashboard() {
 
   const StatCard = ({ title, value, icon: Icon, color, trend = 0 }: StatCardProps) => (
     <motion.div 
-      className="bg-gradient-to-br from-white to-gray-50 rounded-xl overflow-hidden shadow-sm border border-gray-100"
-      whileHover={{ y: -2, shadow: "0 10px 30px rgba(0,0,0,0.1)" }}
+      className="bg-white rounded-lg overflow-hidden shadow border border-gray-100 px-3 py-3 flex items-center gap-3"
+      whileHover={{ y: -2, shadow: "0 10px 30px rgba(0,0,0,0.08)" }}
       transition={{ type: "spring", stiffness: 300 }}
     >
-      <div className="relative">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-5">
-          <div className={`w-24 h-24 ${color} rounded-full absolute -right-6 -top-6 blur-2xl`} />
-        </div>
-        
-        <div className="relative p-4 sm:p-6">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className={`p-3 sm:p-4 rounded-xl ${color} bg-opacity-10 backdrop-blur-xl flex-shrink-0`}>
-              <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${color.replace('bg-', 'text-')}`} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-gray-600 mb-0.5">{title}</p>
-              <div className="flex items-center gap-2">
-                <p className="text-lg sm:text-2xl font-bold truncate text-gray-900">
-                  {typeof value === 'string' && value.toString().startsWith('₹') ? (
-                    <span className="flex items-baseline gap-1">
-                      <span className="text-base">₹</span>
-                      <span>{value.toString().slice(1)}</span>
-                    </span>
-                  ) : value}
-                </p>
-                {trend !== 0 && (
-                  <span className={`flex items-center text-xs sm:text-sm flex-shrink-0 ${
-                    trend > 0 ? 'text-emerald-500' : 'text-red-500'
-                  }`}>
-                    {trend > 0 ? <FaArrowUp className="w-3 h-3" /> : <FaArrowDown className="w-3 h-3" />}
-                    {Math.abs(trend).toFixed(1)}%
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
+      <div className={`p-2 rounded-lg ${color} bg-opacity-10 flex-shrink-0`}>
+        <Icon className={`w-5 h-5 ${color.replace('bg-', 'text-')}`} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium text-gray-500 mb-0.5">{title}</p>
+        <div className="flex items-center gap-2">
+          <span className="text-base font-bold truncate text-gray-900">
+            {typeof value === 'string' && value.toString().startsWith('₹') ? (
+              <span className="flex items-baseline gap-0.5">
+                <span className="text-xs">₹</span>
+                <span>{value.toString().slice(1)}</span>
+              </span>
+            ) : value}
+          </span>
+          {trend !== 0 && (
+            <span className={`flex items-center text-xs flex-shrink-0 ${
+              trend > 0 ? 'text-emerald-500' : 'text-red-500'
+            }`}>
+              {trend > 0 ? <FaArrowUp className="w-3 h-3" /> : <FaArrowDown className="w-3 h-3" />}
+              {Math.abs(trend).toFixed(1)}%
+            </span>
+          )}
         </div>
       </div>
     </motion.div>
@@ -227,183 +216,222 @@ export default function AdminDashboard() {
 
   return (
     <RoleBasedGuard allowedRoles={['admin']}>
-      <AdminLayout title="Dashboard">
-        <div className="p-4 sm:p-6 bg-gradient-to-br from-gray-50/50 to-white min-h-screen">
-          {/* Quick Actions Header */}
-          <div className="mb-6 sm:mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <p className="text-gray-600">Welcome back, Admin!.</p>
+      <AdminLayout title="Admin">
+        <div className="min-h-[calc(100vh-56px)] w-full p-0 sm:p-0 bg-gradient-to-br from-gray-50/70 to-white">
+          <div className="mx-2 sm:mx-4 mt-2 sm:mt-4">
+            {/* Welcome Section */}
+            <div className="mb-4">
+              <div className="flex items-center gap-3 bg-white rounded-lg shadow border border-gray-100 px-4 py-3">
+                
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-800">Welcome back, Admin!</p>
+                  <p className="text-xs text-gray-500 truncate">Here's a quick overview of your platform as of today.</p>
+                </div>
+                <div className="flex items-center">
+                  <button
+                    onClick={() => fetchDashboardData()}
+                    className={`
+                      flex items-center gap-1.5 px-3 py-1.5 rounded-md font-semibold text-xs
+                      bg-gradient-to-r from-primary-500 to-primary-600 text-white
+                      shadow-md transition-all duration-150
+                      hover:from-primary-600 hover:to-primary-700 hover:shadow-lg
+                      focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2
+                      active:scale-95
+                      disabled:opacity-60 disabled:cursor-not-allowed
+                    `}
+                    disabled={isLoading}
+                    aria-label="Refresh dashboard"
+                    style={{ minHeight: 'unset', height: '32px' }}
+                  >
+                    <FaChartBar className="w-4 h-4" />
+                    {isLoading ? (
+                      <span className="animate-pulse">Refreshing...</span>
+                    ) : (
+                      <span>Refresh</span>
+                    )}
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={() => fetchDashboardData()}
-                className="w-full sm:w-auto bg-white px-4 py-2.5 rounded-xl hover:bg-gray-50 border border-gray-200 
-                         transition-all flex items-center justify-center gap-2 text-gray-700 shadow-sm hover:shadow"
-                disabled={isLoading}
-              >
-                <FaChartBar className="text-primary-500" />
-                {isLoading ? 'Refreshing...' : 'Refresh Data'}
-              </button>
             </div>
-          </div>
 
-          {/* Responsive Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-            <StatCard
-              title="Total Revenue"
-              value={`₹${Math.round(stats.totalRevenue).toLocaleString()}`}
-              icon={FaMoneyBillWave}
-              color="bg-emerald-500"
-              trend={getTrendPercentage()}
-            />
-            <StatCard
-              title="Total Users"
-              value={stats.totalUsers}
-              icon={FaUsers}
-              color="bg-blue-500"
-            />
-            <StatCard
-              title="Total Canteens"
-              value={stats.totalCanteens}
-              icon={FaStore}
-              color="bg-green-500"
-            />
-            <StatCard
-              title="Total Orders"
-              value={stats.totalOrders}
-              icon={FaChartBar}
-              color="bg-purple-500"
-            />
-            <StatCard
-              title="Cancelled Orders"
-              value={stats.cancelledOrders}
-              icon={FaTimesCircle}
-              color="bg-red-500"
-            />
-            <StatCard
-              title="Total Refunded"
-              value={`₹${stats.totalRefunded.toLocaleString()}`}
-              icon={FaUndo}
-              color="bg-orange-500"
-            />
-          </div>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-4">
+              <StatCard
+                title="Revenue"
+                value={`₹${Math.round(stats.totalRevenue).toLocaleString()}`}
+                icon={FaMoneyBillWave}
+                color="bg-emerald-500"
+                trend={getTrendPercentage()}
+              />
+              <StatCard
+                title="Users"
+                value={stats.totalUsers}
+                icon={FaUsers}
+                color="bg-blue-500"
+              />
+              <StatCard
+                title="Canteens"
+                value={stats.totalCanteens}
+                icon={FaStore}
+                color="bg-green-500"
+              />
+              <StatCard
+                title="Orders"
+                value={stats.totalOrders}
+                icon={FaChartBar}
+                color="bg-purple-500"
+              />
+              <StatCard
+                title="Cancelled"
+                value={stats.cancelledOrders}
+                icon={FaTimesCircle}
+                color="bg-red-500"
+              />
+              <StatCard
+                title="Refunded"
+                value={`₹${stats.totalRefunded.toLocaleString()}`}
+                icon={FaUndo}
+                color="bg-orange-500"
+              />
+            </div>
 
-          {/* Analytics Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            {/* Main Chart */}
-            <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="p-4 sm:p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                  <h2 className="text-lg font-semibold text-gray-800">Revenue Analytics</h2>
-                  {/* Period Selector */}
-                  <div className="flex rounded-xl bg-gray-50 p-1">
-                    {(['daily', 'weekly', 'monthly'] as const).map((type) => (
-                      <button
-                        key={type}
-                        onClick={() => setAnalyticsType(type)}
-                        className={`flex-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                          analyticsType === type
-                            ? 'bg-white text-primary-600 shadow-sm'
-                            : 'text-gray-500 hover:bg-gray-100'
-                        }`}
-                      >
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
-                      </button>
-                    ))}
+            {/* Analytics Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
+              {/* Main Chart */}
+              <div className="lg:col-span-2 bg-white rounded-lg border border-gray-100 shadow overflow-hidden">
+                <div className="p-3">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <h2 className="text-base font-semibold text-gray-800">Revenue Analytics</h2>
+                    {/* Period Selector */}
+                    <div className="flex rounded-lg bg-gray-50 p-0.5 border border-gray-200 shadow-sm">
+                      {(['daily', 'weekly', 'monthly'] as const).map((type) => (
+                        <button
+                          key={type}
+                          onClick={() => setAnalyticsType(type)}
+                          className={`
+                            flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-all duration-150
+                            ${
+                              analyticsType === type
+                                ? 'bg-primary-500 text-white shadow focus:ring-2 focus:ring-primary-400'
+                                : 'bg-white text-gray-600 hover:bg-primary-50 hover:text-primary-600'
+                            }
+                            focus:outline-none
+                          `}
+                          style={{
+                            boxShadow: analyticsType === type ? '0 2px 8px 0 rgba(16,185,129,0.10)' : undefined,
+                            minHeight: 'unset',
+                            height: '28px'
+                          }}
+                          aria-pressed={analyticsType === type}
+                        >
+                          {type === 'daily' && (
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <circle cx="12" cy="12" r="10" />
+                              <path d="M12 6v6l4 2" />
+                            </svg>
+                          )}
+                          {type === 'weekly' && (
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <rect x="3" y="7" width="18" height="13" rx="2" />
+                              <path d="M16 3v4M8 3v4" />
+                            </svg>
+                          )}
+                          {type === 'monthly' && (
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <rect x="3" y="4" width="18" height="18" rx="2" />
+                              <path d="M16 2v4M8 2v4M3 10h18" />
+                            </svg>
+                          )}
+                          <span className="capitalize">{type}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Chart Container */}
+                  <div className="h-[220px] sm:h-[260px] -mx-2 sm:mx-0">
+                    <Chart
+                      options={{
+                        ...chartOptions,
+                        chart: {
+                          ...chartOptions.chart,
+                          toolbar: { show: false },
+                          zoom: { enabled: false }
+                        },
+                        grid: {
+                          padding: { left: 5, right: 5 },
+                          strokeDashArray: 4,
+                        },
+                        xaxis: {
+                          ...chartOptions.xaxis,
+                          labels: {
+                            style: {
+                              fontSize: '9px',
+                              fontFamily: 'Inter, sans-serif'
+                            },
+                            rotate: -45,
+                            hideOverlappingLabels: true
+                          }
+                        }
+                      }}
+                      series={[{
+                        name: 'Revenue',
+                        data: stats.analytics?.[analyticsType]?.map(d => d.value) || []
+                      }]}
+                      type="area"
+                      height="100%"
+                    />
                   </div>
                 </div>
-                
-                {/* Chart Container */}
-                <div className="h-[300px] sm:h-[400px] -mx-4 sm:mx-0">
-                  <Chart
-                    options={{
-                      ...chartOptions,
-                      chart: {
-                        ...chartOptions.chart,
-                        toolbar: {
-                          show: false
-                        },
-                        zoom: {
-                          enabled: false
-                        }
-                      },
-                      grid: {
-                        padding: {
-                          left: 10,
-                          right: 10
-                        },
-                        strokeDashArray: 4,
-                      },
-                      xaxis: {
-                        ...chartOptions.xaxis,
-                        labels: {
-                          style: {
-                            fontSize: '10px',
-                            fontFamily: 'Inter, sans-serif'
-                          },
-                          rotate: -45,
-                          hideOverlappingLabels: true
-                        }
-                      }
-                    }}
-                    series={[{
-                      name: 'Revenue',
-                      data: stats.analytics?.[analyticsType]?.map(d => d.value) || []
-                    }]}
-                    type="area"
-                    height="100%"
-                  />
-                </div>
               </div>
-            </div>
 
-            {/* Quick Stats */}
-            <div className="space-y-4">
-              <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
-                <div className="p-4 sm:p-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Stats</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-1 gap-4">
-                    {[
-                      { 
-                        label: 'Avg. Order',
-                        value: `₹${((stats.totalRevenue || 0) / (stats.totalOrders || 1)).toFixed(0)}`,
-                        change: '+12.5%',
-                        isPositive: true
-                      },
-                      {
-                        label: 'Cancel Rate',
-                        value: `${((stats.cancelledOrders || 0) / (stats.totalOrders || 1) * 100).toFixed(1)}%`,
-                        change: '-2.3%',
-                        isPositive: true
-                      },
-                      {
-                        label: 'User Growth',
-                        value: `${stats.totalUsers}`,
-                        change: '+5.6%',
-                        isPositive: true
-                      },
-                      {
-                        label: 'Canteens',
-                        value: stats.totalCanteens,
-                        change: '0%',
-                        isPositive: true
-                      }
-                    ].map((stat, index) => (
-                      <motion.div
-                        key={index}
-                        className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 sm:p-4 hover:bg-gray-100 transition-colors border border-gray-100"
-                        whileHover={{ scale: 1.02 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                      >
-                        <p className="text-sm text-gray-600 mb-1">{stat.label}</p>
-                        <div className="flex items-end justify-between">
-                          <span className="text-lg sm:text-xl font-semibold text-gray-900">{stat.value}</span>
-                          <span className={`text-xs ${stat.isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
-                            {stat.change}
-                          </span>
-                        </div>
-                      </motion.div>
-                    ))}
+              {/* Quick Stats */}
+              <div className="space-y-2">
+                <div className="bg-white rounded-lg border border-gray-100 shadow">
+                  <div className="p-3">
+                    <h3 className="text-base font-semibold text-gray-800 mb-2">Quick Stats</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        {
+                          label: 'Avg. Order',
+                          value: `₹${((stats.totalRevenue || 0) / (stats.totalOrders || 1)).toFixed(0)}`,
+                          change: '+12.5%',
+                          isPositive: true
+                        },
+                        {
+                          label: 'Cancel Rate',
+                          value: `${((stats.cancelledOrders || 0) / (stats.totalOrders || 1) * 100).toFixed(1)}%`,
+                          change: '-2.3%',
+                          isPositive: true
+                        },
+                        {
+                          label: 'User Growth',
+                          value: `${stats.totalUsers}`,
+                          change: '+5.6%',
+                          isPositive: true
+                        },
+                        {
+                          label: 'Canteens',
+                          value: stats.totalCanteens,
+                          change: '0%',
+                          isPositive: true
+                        }
+                      ].map((stat, index) => (
+                        <motion.div
+                          key={index}
+                          className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-2 hover:bg-gray-100 transition-colors border border-gray-100"
+                          whileHover={{ scale: 1.01 }}
+                          transition={{ type: "spring", stiffness: 300 }}
+                        >
+                          <p className="text-xs text-gray-500 mb-0.5">{stat.label}</p>
+                          <div className="flex items-end justify-between">
+                            <span className="text-base font-semibold text-gray-900">{stat.value}</span>
+                            <span className={`text-xs ${stat.isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
+                              {stat.change}
+                            </span>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
