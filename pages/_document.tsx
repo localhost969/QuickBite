@@ -1,16 +1,17 @@
-import { Html, Head, Main, NextScript } from 'next/document';
+import { Html, Head, Main, NextScript } from "next/document";
 
 export default function Document() {
   return (
     <Html lang="en">
       <Head>
-        <link rel="icon" href="/favicon.ico" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
+        {/* QuickBite title and description */}
+        <title>QuickBite - College Canteen Management System</title>
+        <meta
+          name="description"
+          content="QuickBite is a modern college canteen management system designed to streamline food ordering, inventory, and operations for campus cafeterias."
         />
       </Head>
-      <body>
+      <body className="antialiased">
         <Main />
         <NextScript />
       </body>

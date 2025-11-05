@@ -1,444 +1,535 @@
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import AdminLayout from '../../components/layout/AdminLayout';
-import { 
-  FaUsers, FaStore, FaChartBar, FaMoneyBillWave, 
-  FaTimesCircle, FaUndo, FaArrowUp, FaArrowDown, FaUserCircle
-} from 'react-icons/fa';
-import { motion } from 'framer-motion';
-import { toast } from 'react-toastify';
-import RoleBasedGuard from '../../components/auth/RoleBasedGuard';
-import dynamic from 'next/dynamic';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import AdminLayout from '@/components/admin/AdminLayout';
+import { useEffect, useState, useCallback } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { adminApi } from '@/lib/adminApi';
+import {
+  TrendingUp,
+  Loader,
+  Users,
+  ShoppingBag,
+  DollarSign,
+  Ticket,
+  Activity,
+  Zap,
+  CheckCircle,
+  BarChart3,
+  Calendar,
+  Clock,
+  ArrowUp,
+  ArrowDown,
+} from 'lucide-react';
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
 
-const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
-
-interface AnalyticsData {
+interface SalesGraphData {
   date: string;
-  value: number;
+  orders: number;
+  revenue: number;
 }
 
-interface StatsData {
-  totalUsers: number;
-  totalCanteens: number;
-  totalOrders: number;
-  totalRevenue: number;
-  cancelledOrders: number;
-  totalRefunded: number;
-  analytics: {
-    daily: AnalyticsData[];
-    weekly: AnalyticsData[];
-    monthly: AnalyticsData[];
+interface AdminStats {
+  total_users: number;
+  total_canteens: number;
+  total_orders: number;
+  total_revenue: number;
+  total_coupons: number;
+  pending_orders: number;
+  completed_orders: number;
+  cancelled_orders: number;
+  today_orders?: number;
+  sales_graph?: SalesGraphData[];
+  total_products?: number;
+  accepted?: number;
+  preparing?: number;
+  ready?: number;
+  user_roles?: {
+    users: number;
+    canteen: number;
+    admin: number;
   };
 }
 
-interface StatCardProps {
-  title: string;
-  value: string | number;
-  icon: React.ComponentType<any>;
-  color: string;
-  trend?: number;
-}
+// Color palette - Blue theme only
+const COLORS = {
+  primary: '#0040ffea',
+  light: '#f3f4f6',
+  dark: '#1f2937',
+};
 
-export default function AdminDashboard() {
-  const router = useRouter();
-  const [stats, setStats] = useState<StatsData>({
-    totalUsers: 0,
-    totalCanteens: 0,
-    totalOrders: 0,
-    totalRevenue: 0,
-    cancelledOrders: 0,
-    totalRefunded: 0,
-    analytics: {
-      daily: [],
-      weekly: [],
-      monthly: []
+// Blue theme shades for status colors
+const STATUS_COLORS = [
+  '#7dd3fc',    // pending - light blue
+  '#3b82f6',    // accepted - blue
+  '#0040ffea',  // preparing - primary blue
+  '#1d4ed8',    // ready - dark blue
+  '#1e3a8a',    // completed - darker blue
+  '#64748b'     // cancelled - gray-blue
+];
+
+const StatusLegendDot = ({ color }: { color: string }) => (
+  <span
+    className="inline-block w-3 h-3 rounded-full mr-2 align-middle"
+    style={{ backgroundColor: color }}
+  />
+);
+
+// Map names to existing status colors (no new colors)
+const ORDER_STATUS_COLOR_MAP: Record<string, string> = {
+  Pending: STATUS_COLORS[0],
+  Completed: STATUS_COLORS[4],
+  Cancelled: STATUS_COLORS[5],
+};
+
+const USER_DIST_COLOR_MAP: Record<string, string> = {
+  'Regular Users': STATUS_COLORS[1],
+  'Canteen Managers': STATUS_COLORS[3],
+};
+
+export default function AdminDashboardPage() {
+  const { user } = useAuth();
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  // New: production-grade state
+  const [error, setError] = useState<string | null>(null);
+  const [chartDays, setChartDays] = useState<number>(10);
+
+  // New: centralize fetching with retry
+  const fetchStats = useCallback(async () => {
+    if (!token) return;
+    setError(null);
+    setLoading(true);
+    try {
+      const data = await adminApi.dashboard.get(token);
+      if (data.success && data.stats) {
+        setStats({
+          ...data.stats,
+          total_canteens: data.stats.user_roles?.canteen || 0,
+          pending_orders: data.stats.pending || 0,
+          completed_orders: data.stats.completed || 0,
+          cancelled_orders: data.stats.cancelled || 0,
+          total_coupons: 0,
+        });
+      } else {
+        setError('Unable to load dashboard right now. Please try again.');
+      }
+    } catch (e) {
+      console.error('Error fetching stats:', e);
+      setError('Unable to load dashboard right now. Please try again.');
+    } finally {
+      setLoading(false);
     }
-  });
-
-  const [analyticsType, setAnalyticsType] = useState<'daily' | 'weekly' | 'monthly'>('daily');
-  const [isLoading, setIsLoading] = useState(true);
+  }, [token]);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (!token) return;
+    fetchStats();
+  }, [token, fetchStats]);
 
-  const fetchDashboardData = async () => {
-    try {
-      setIsLoading(true);
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        router.push('/login');
-        return;
-      }
-
-      const authHeader = `Bearer ${token}`;
-      
-      const response = await fetch('https://localhost969.pythonanywhere.com/admin/dashboard', {
-        headers: {
-          'Authorization': authHeader,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setStats(data);
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.error || 'Failed to load dashboard data');
-        
-        if (response.status === 401 || response.status === 403) {
-          router.push('/login');
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      toast.error('Error loading dashboard data');
-    } finally {
-      setIsLoading(false);
-    }
+  // Prepare data for order status pie chart
+  const getOrderStatusData = () => {
+    if (!stats) return [];
+    return [
+      { name: 'Pending', value: stats.pending_orders || 0 },
+      { name: 'Completed', value: stats.completed_orders || 0 },
+      { name: 'Cancelled', value: stats.cancelled_orders || 0 },
+    ].filter(item => item.value > 0);
   };
 
-  const getTrendPercentage = () => {
-    if (!stats.analytics?.daily || stats.analytics.daily.length < 2) return 0;
-    const lastTwo = stats.analytics.daily.slice(-2);
-    const prevValue = lastTwo[0]?.value || 0;
-    const currentValue = lastTwo[1]?.value || 0;
-    if (prevValue === 0) return 100;
-    return ((currentValue - prevValue) / prevValue) * 100;
+  // Prepare sales graph data - respect selected range
+  const getSalesGraphData = () => {
+    if (!stats?.sales_graph?.length) return [];
+    return stats.sales_graph.slice(-chartDays).map(day => ({
+      date: new Date(day.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+      revenue: day.revenue,
+      orders: day.orders
+    }));
   };
 
-  const StatCard = ({ title, value, icon: Icon, color, trend = 0 }: StatCardProps) => (
-    <motion.div 
-      className="bg-white rounded-lg overflow-hidden shadow border border-gray-100 px-3 py-3 flex items-center gap-3"
-      whileHover={{ y: -2, shadow: "0 10px 30px rgba(0,0,0,0.08)" }}
-      transition={{ type: "spring", stiffness: 300 }}
-    >
-      <div className={`p-2 rounded-lg ${color} bg-opacity-10 flex-shrink-0`}>
-        <Icon className={`w-5 h-5 ${color.replace('bg-', 'text-')}`} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-gray-500 mb-0.5">{title}</p>
-        <div className="flex items-center gap-2">
-          <span className="text-base font-bold truncate text-gray-900">
-            {typeof value === 'string' && value.toString().startsWith('₹') ? (
-              <span className="flex items-baseline gap-0.5">
-                <span className="text-xs">₹</span>
-                <span>{value.toString().slice(1)}</span>
-              </span>
-            ) : value}
-          </span>
-          {trend !== 0 && (
-            <span className={`flex items-center text-xs flex-shrink-0 ${
-              trend > 0 ? 'text-emerald-500' : 'text-red-500'
-            }`}>
-              {trend > 0 ? <FaArrowUp className="w-3 h-3" /> : <FaArrowDown className="w-3 h-3" />}
-              {Math.abs(trend).toFixed(1)}%
-            </span>
-          )}
-        </div>
-      </div>
-    </motion.div>
-  );
-
-  const chartOptions = {
-    chart: {
-      type: 'area' as const,
-      toolbar: {
-        show: false
-      },
-      animations: {
-        enabled: true,
-        easing: 'easeinout',
-        speed: 800,
-        animateGradually: {
-          enabled: true,
-          delay: 150
-        },
-        dynamicAnimation: {
-          enabled: true,
-          speed: 350
-        }
-      }
-    },
-    stroke: {
-      curve: 'smooth' as const,
-      width: 3
-    },
-    fill: {
-      type: 'gradient',
-      gradient: {
-        shadeIntensity: 1,
-        opacityFrom: 0.7,
-        opacityTo: 0.2,
-        stops: [0, 90, 100]
-      }
-    },
-    dataLabels: {
-      enabled: false
-    },
-    grid: {
-      borderColor: '#f1f1f1',
-      strokeDashArray: 4,
-      xaxis: {
-        lines: {
-          show: true
-        }
-      }
-    },
-    colors: ['#10B981'],
-    xaxis: {
-      categories: stats.analytics?.[analyticsType]?.map(d => d.date) || [],
-      labels: {
-        style: {
-          colors: '#64748b',
-          fontFamily: 'Inter, sans-serif'
-        }
-      }
-    },
-    yaxis: {
-      labels: {
-        formatter: (value: number) => `₹${value.toFixed(0)}`,
-        style: {
-          colors: '#64748b',
-          fontFamily: 'Inter, sans-serif'
-        }
-      }
-    },
-    tooltip: {
-      theme: 'dark',
-      y: {
-        formatter: (value: number) => `₹${value.toFixed(2)}`
-      }
-    }
+  // User distribution data
+  const getUserDistributionData = () => {
+    if (!stats) return [];
+    return [
+      { name: 'Regular Users', value: stats.user_roles?.users || 0 },
+      { name: 'Canteen Managers', value: stats.user_roles?.canteen || 0 },
+    ].filter(item => item.value > 0);
   };
+
+  // Calculate analytics metrics
+  const avgOrderValue = stats && stats.total_orders > 0 
+    ? Math.round((stats.total_revenue || 0) / stats.total_orders)
+    : 0;
+
+  const completionRate = stats && stats.total_orders > 0
+    ? Math.round((stats.completed_orders || 0) / stats.total_orders * 100)
+    : 0;
+
+  const cancellationRate = stats && stats.total_orders > 0
+    ? Math.round((stats.cancelled_orders || 0) / stats.total_orders * 100)
+    : 0;
+
+  const handleRefresh = () => fetchStats();
 
   return (
-    <RoleBasedGuard allowedRoles={['admin']}>
-      <AdminLayout title="Admin">
-        <div className="min-h-[calc(100vh-56px)] w-full p-0 sm:p-0 bg-gradient-to-br from-gray-50/70 to-white">
-          <div className="mx-2 sm:mx-4 mt-2 sm:mt-4">
+    <ProtectedRoute allowedRoles={['admin']}>
+      <AdminLayout>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
             {/* Welcome Section */}
-            <div className="mb-4">
-              <div className="flex items-center gap-3 bg-white rounded-lg shadow border border-gray-100 px-4 py-3">
-                
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-800">Welcome back, Admin!</p>
-                  <p className="text-xs text-gray-500 truncate">Here's a quick overview of your platform as of today.</p>
+            <div className="mb-10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                    Welcome back, {user?.name}!
+                  </h1>
+                  <p className="text-gray-600 mt-2">System-wide analytics and management</p>
                 </div>
-                <div className="flex items-center">
+              </div>
+            </div>
+
+            {/* New: Error banner (keeps theme colors) */}
+            {error && (
+              <div className="mb-6 rounded-xl border border-gray-200 bg-white p-4 text-gray-700">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-blue-600" />
+                  <span>{error}</span>
                   <button
-                    onClick={() => fetchDashboardData()}
-                    className={`
-                      flex items-center gap-1.5 px-3 py-1.5 rounded-md font-semibold text-xs
-                      bg-gradient-to-r from-primary-500 to-primary-600 text-white
-                      shadow-md transition-all duration-150
-                      hover:from-primary-600 hover:to-primary-700 hover:shadow-lg
-                      focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2
-                      active:scale-95
-                      disabled:opacity-60 disabled:cursor-not-allowed
-                    `}
-                    disabled={isLoading}
-                    aria-label="Refresh dashboard"
-                    style={{ minHeight: 'unset', height: '32px' }}
+                    onClick={handleRefresh}
+                    className="ml-auto text-sm text-blue-600 hover:underline"
+                    aria-label="Retry loading dashboard"
                   >
-                    <FaChartBar className="w-4 h-4" />
-                    {isLoading ? (
-                      <span className="animate-pulse">Refreshing...</span>
-                    ) : (
-                      <span>Refresh</span>
-                    )}
+                    Retry
                   </button>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-4">
-              <StatCard
-                title="Revenue"
-                value={`₹${Math.round(stats.totalRevenue).toLocaleString()}`}
-                icon={FaMoneyBillWave}
-                color="bg-emerald-500"
-                trend={getTrendPercentage()}
-              />
-              <StatCard
-                title="Users"
-                value={stats.totalUsers}
-                icon={FaUsers}
-                color="bg-blue-500"
-              />
-              <StatCard
-                title="Canteens"
-                value={stats.totalCanteens}
-                icon={FaStore}
-                color="bg-green-500"
-              />
-              <StatCard
-                title="Orders"
-                value={stats.totalOrders}
-                icon={FaChartBar}
-                color="bg-purple-500"
-              />
-              <StatCard
-                title="Cancelled"
-                value={stats.cancelledOrders}
-                icon={FaTimesCircle}
-                color="bg-red-500"
-              />
-              <StatCard
-                title="Refunded"
-                value={`₹${stats.totalRefunded.toLocaleString()}`}
-                icon={FaUndo}
-                color="bg-orange-500"
-              />
-            </div>
+            {loading ? (
+              <div className="flex items-center justify-center py-32">
+                <div className="flex flex-col items-center gap-4">
+                  <Loader className="w-10 h-10 text-blue-600 animate-spin" />
+                  <p className="text-gray-600">Loading your dashboard...</p>
+                </div>
+              </div>
+            ) : stats ? (
+              <>
+                {/* Top KPI Cards - 4 Main Metrics in Single Row */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+                  {/* Total Revenue */}
+                  <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-200 group flex flex-col justify-between">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="w-11 h-11 bg-blue-50 rounded-lg flex items-center justify-center group-hover:shadow transition-all">
+                        <DollarSign className="w-6 h-6 text-blue-600" />
+                      </div>
+                    </div>
+                    <p className="text-gray-600 text-xs font-medium mb-1">Total Revenue</p>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-0.5">₹{stats.total_revenue?.toLocaleString() || 0}</h3>
+                    <p className="text-xs text-blue-600 font-medium">All time</p>
+                  </div>
 
-            {/* Analytics Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
-              {/* Main Chart */}
-              <div className="lg:col-span-2 bg-white rounded-lg border border-gray-100 shadow overflow-hidden">
-                <div className="p-3">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <h2 className="text-base font-semibold text-gray-800">Revenue Analytics</h2>
-                    {/* Period Selector */}
-                    <div className="flex rounded-lg bg-gray-50 p-0.5 border border-gray-200 shadow-sm">
-                      {(['daily', 'weekly', 'monthly'] as const).map((type) => (
-                        <button
-                          key={type}
-                          onClick={() => setAnalyticsType(type)}
-                          className={`
-                            flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-all duration-150
-                            ${
-                              analyticsType === type
-                                ? 'bg-primary-500 text-white shadow focus:ring-2 focus:ring-primary-400'
-                                : 'bg-white text-gray-600 hover:bg-primary-50 hover:text-primary-600'
-                            }
-                            focus:outline-none
-                          `}
-                          style={{
-                            boxShadow: analyticsType === type ? '0 2px 8px 0 rgba(16,185,129,0.10)' : undefined,
-                            minHeight: 'unset',
-                            height: '28px'
+                  {/* Total Orders */}
+                  <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-200 group flex flex-col justify-between">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="w-11 h-11 bg-blue-50 rounded-lg flex items-center justify-center group-hover:shadow transition-all">
+                        <ShoppingBag className="w-6 h-6 text-blue-600" />
+                      </div>
+                    </div>
+                    <p className="text-gray-600 text-xs font-medium mb-1">Total Orders</p>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-0.5">{stats.total_orders || 0}</h3>
+                    <p className="text-xs text-blue-600 font-medium">All time</p>
+                  </div>
+
+                  {/* Total Users */}
+                  <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-200 group flex flex-col justify-between">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="w-11 h-11 bg-blue-50 rounded-lg flex items-center justify-center group-hover:shadow transition-all">
+                        <Users className="w-6 h-6 text-blue-600" />
+                      </div>
+                    </div>
+                    <p className="text-gray-600 text-xs font-medium mb-1">Total Users</p>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-0.5">{stats.total_users || 0}</h3>
+                    <p className="text-xs text-blue-600 font-medium">Regular users</p>
+                  </div>
+
+                  {/* Canteen Managers */}
+                  <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-200 group flex flex-col justify-between">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="w-11 h-11 bg-blue-50 rounded-lg flex items-center justify-center group-hover:shadow transition-all">
+                        <Users className="w-6 h-6 text-blue-600" />
+                      </div>
+                    </div>
+                    <p className="text-gray-600 text-xs font-medium mb-1">Canteens</p>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-0.5">{stats.total_canteens || 0}</h3>
+                    <p className="text-xs text-blue-600 font-medium">Active canteens</p>
+                  </div>
+                </div>
+
+                {/* Charts Section with range selector and refresh */}
+                <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 mb-8">
+                  <div className="flex items-center gap-3 mb-8">
+                    <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                      <TrendingUp className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">Revenue Trend</h2>
+                      <p className="text-xs text-gray-500 mt-1">Recent performance</p>
+                    </div>
+                    <div className="ml-auto flex items-center gap-2">
+                      <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+                        {[7, 10, 30].map((n) => (
+                          <button
+                            key={n}
+                            onClick={() => setChartDays(n)}
+                            className={`px-3 py-1.5 text-xs font-medium transition ${
+                              chartDays === n
+                                ? 'bg-blue-50 text-blue-700'
+                                : 'text-gray-600 hover:bg-gray-50'
+                            }`}
+                            aria-pressed={chartDays === n}
+                            aria-label={`Show last ${n} days`}
+                          >
+                            {n}D
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        onClick={handleRefresh}
+                        className="px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50"
+                        aria-label="Refresh data"
+                      >
+                        Refresh
+                      </button>
+                    </div>
+                  </div>
+
+                  {getSalesGraphData().length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={getSalesGraphData()}>
+                        <defs>
+                          <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={COLORS.primary} stopOpacity={0.8} />
+                            <stop offset="95%" stopColor={COLORS.primary} stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis dataKey="date" stroke="#6b7280" style={{ fontSize: '12px' }} />
+                        <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#ffffff',
+                            border: `2px solid ${COLORS.primary}`,
+                            borderRadius: '8px',
+                            boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
                           }}
-                          aria-pressed={analyticsType === type}
-                        >
-                          {type === 'daily' && (
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <circle cx="12" cy="12" r="10" />
-                              <path d="M12 6v6l4 2" />
-                            </svg>
-                          )}
-                          {type === 'weekly' && (
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <rect x="3" y="7" width="18" height="13" rx="2" />
-                              <path d="M16 3v4M8 3v4" />
-                            </svg>
-                          )}
-                          {type === 'monthly' && (
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <rect x="3" y="4" width="18" height="18" rx="2" />
-                              <path d="M16 2v4M8 2v4M3 10h18" />
-                            </svg>
-                          )}
-                          <span className="capitalize">{type}</span>
-                        </button>
-                      ))}
+                          formatter={(value: any) => `₹${Number(value).toLocaleString()}`}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="revenue"
+                          stroke={COLORS.primary}
+                          strokeWidth={3}
+                          dot={{ fill: COLORS.primary, r: 5 }}
+                          activeDot={{ r: 7 }}
+                          isAnimationActive={true}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-72 flex items-center justify-center text-gray-400">
+                      <TrendingUp className="w-16 h-16 opacity-30 mr-4" />
+                      <p>No data available</p>
                     </div>
-                  </div>
-                  {/* Chart Container */}
-                  <div className="h-[220px] sm:h-[260px] -mx-2 sm:mx-0">
-                    <Chart
-                      options={{
-                        ...chartOptions,
-                        chart: {
-                          ...chartOptions.chart,
-                          toolbar: { show: false },
-                          zoom: { enabled: false }
-                        },
-                        grid: {
-                          padding: { left: 5, right: 5 },
-                          strokeDashArray: 4,
-                        },
-                        xaxis: {
-                          ...chartOptions.xaxis,
-                          labels: {
-                            style: {
-                              fontSize: '9px',
-                              fontFamily: 'Inter, sans-serif'
-                            },
-                            rotate: -45,
-                            hideOverlappingLabels: true
-                          }
-                        }
-                      }}
-                      series={[{
-                        name: 'Revenue',
-                        data: stats.analytics?.[analyticsType]?.map(d => d.value) || []
-                      }]}
-                      type="area"
-                      height="100%"
-                    />
-                  </div>
+                  )}
                 </div>
-              </div>
 
-              {/* Quick Stats */}
-              <div className="space-y-2">
-                <div className="bg-white rounded-lg border border-gray-100 shadow">
-                  <div className="p-3">
-                    <h3 className="text-base font-semibold text-gray-800 mb-2">Quick Stats</h3>
-                    <div className="grid grid-cols-2 gap-2">
-                      {[
-                        {
-                          label: 'Avg. Order',
-                          value: `₹${((stats.totalRevenue || 0) / (stats.totalOrders || 1)).toFixed(0)}`,
-                          change: '+12.5%',
-                          isPositive: true
-                        },
-                        {
-                          label: 'Cancel Rate',
-                          value: `${((stats.cancelledOrders || 0) / (stats.totalOrders || 1) * 100).toFixed(1)}%`,
-                          change: '-2.3%',
-                          isPositive: true
-                        },
-                        {
-                          label: 'User Growth',
-                          value: `${stats.totalUsers}`,
-                          change: '+5.6%',
-                          isPositive: true
-                        },
-                        {
-                          label: 'Canteens',
-                          value: stats.totalCanteens,
-                          change: '0%',
-                          isPositive: true
-                        }
-                      ].map((stat, index) => (
-                        <motion.div
-                          key={index}
-                          className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-2 hover:bg-gray-100 transition-colors border border-gray-100"
-                          whileHover={{ scale: 1.01 }}
-                          transition={{ type: "spring", stiffness: 300 }}
-                        >
-                          <p className="text-xs text-gray-500 mb-0.5">{stat.label}</p>
-                          <div className="flex items-end justify-between">
-                            <span className="text-base font-semibold text-gray-900">{stat.value}</span>
-                            <span className={`text-xs ${stat.isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
-                              {stat.change}
-                            </span>
-                          </div>
-                        </motion.div>
-                      ))}
+                {/* Orders Volume Chart - same palette */}
+                <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 mb-8">
+                  <div className="flex items-center gap-3 mb-8">
+                    <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                      <BarChart3 className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">Orders Volume</h2>
+                      <p className="text-xs text-gray-500 mt-1">Daily order count trend</p>
                     </div>
                   </div>
+
+                  {getSalesGraphData().length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={getSalesGraphData()}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis dataKey="date" stroke="#6b7280" style={{ fontSize: '12px' }} />
+                        <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#ffffff',
+                            border: `2px solid ${COLORS.primary}`,
+                            borderRadius: '8px',
+                            boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+                          }}
+                          formatter={(value: any) => `${value} orders`}
+                        />
+                        <Bar dataKey="orders" fill={COLORS.primary} radius={[8, 8, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-72 flex items-center justify-center text-gray-400">
+                      <p>No data available</p>
+                    </div>
+                  )}
                 </div>
-              </div>
-            </div>
+
+                {/* New: Distribution Section (Order Status + User Distribution) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                  {/* Order Status Distribution */}
+                  <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                        <CheckCircle className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-gray-900">Order Status</h2>
+                        <p className="text-xs text-gray-500 mt-1">Pending vs Completed vs Cancelled</p>
+                      </div>
+                    </div>
+
+                    {getOrderStatusData().length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <ResponsiveContainer width="100%" height={260}>
+                          <PieChart>
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: '#ffffff',
+                                border: `2px solid ${COLORS.primary}`,
+                                borderRadius: '8px',
+                                boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+                              }}
+                              formatter={(value: any, name: any) => [`${value}`, name]}
+                            />
+                            <Pie
+                              data={getOrderStatusData()}
+                              dataKey="value"
+                              nameKey="name"
+                              innerRadius={60}
+                              outerRadius={90}
+                              paddingAngle={4}
+                              stroke="#ffffff"
+                              strokeWidth={2}
+                            >
+                              {getOrderStatusData().map((entry, index) => (
+                                <Cell key={`cell-status-${index}`} fill={ORDER_STATUS_COLOR_MAP[entry.name]} />
+                              ))}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+
+                        <div className="space-y-3">
+                          {getOrderStatusData().map((d) => (
+                            <div key={d.name} className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <span
+                                  className="inline-block w-3 h-3 rounded-full mr-2"
+                                  style={{ backgroundColor: ORDER_STATUS_COLOR_MAP[d.name] }}
+                                />
+                                <span className="text-sm text-gray-700">{d.name}</span>
+                              </div>
+                              <span className="text-sm font-semibold text-gray-900">{d.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-40 flex items-center justify-center text-gray-400">
+                        <p>No data available</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* User Distribution */}
+                  <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                        <Users className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-gray-900">User Distribution</h2>
+                        <p className="text-xs text-gray-500 mt-1">Users vs Canteen Managers</p>
+                      </div>
+                    </div>
+
+                    {getUserDistributionData().length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <ResponsiveContainer width="100%" height={260}>
+                          <PieChart>
+                            <Tooltip
+                              contentStyle={{
+                                backgroundColor: '#ffffff',
+                                border: `2px solid ${COLORS.primary}`,
+                                borderRadius: '8px',
+                                boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+                              }}
+                              formatter={(value: any, name: any) => [`${value}`, name]}
+                            />
+                            <Pie
+                              data={getUserDistributionData()}
+                              dataKey="value"
+                              nameKey="name"
+                              innerRadius={60}
+                              outerRadius={90}
+                              paddingAngle={4}
+                              stroke="#ffffff"
+                              strokeWidth={2}
+                            >
+                              {getUserDistributionData().map((entry, index) => (
+                                <Cell key={`cell-user-${index}`} fill={USER_DIST_COLOR_MAP[entry.name]} />
+                              ))}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+
+                        <div className="space-y-3">
+                          {getUserDistributionData().map((d) => (
+                            <div key={d.name} className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <span
+                                  className="inline-block w-3 h-3 rounded-full mr-2"
+                                  style={{ backgroundColor: USER_DIST_COLOR_MAP[d.name] }}
+                                />
+                                <span className="text-sm text-gray-700">{d.name}</span>
+                              </div>
+                              <span className="text-sm font-semibold text-gray-900">{d.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-40 flex items-center justify-center text-gray-400">
+                        <p>No data available</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* ...you can continue with more sections if needed... */}
+
+              </>
+            ) : null}
           </div>
         </div>
       </AdminLayout>
-    </RoleBasedGuard>
+    </ProtectedRoute>
   );
 }
