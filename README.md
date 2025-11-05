@@ -7,7 +7,7 @@ A full-stack food ordering & canteen management platform built with **Next.js** 
 ##  Screenshots
 
 
-| Dashboard | Menu | Admin Panel |
+| User Panel| Admin Panel| Canteen Panel |
 |-----------|------|------------|
 | ![User](./public/user_dash.png) | ![Admin](./public/admin_dash.png) | ![Canteen](./public/canteen_dash.png) |
 
